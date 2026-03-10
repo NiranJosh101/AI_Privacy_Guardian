@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+httpx
+pydantic
+PyYAML
+python-dotenv
+pyyaml
+pydantic

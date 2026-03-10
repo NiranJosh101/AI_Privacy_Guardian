@@ -1,0 +1,31 @@
+
+app:
+  name: "ai-privacy-guardian-gateway"
+  version: "1.0.0"
+  env: "development"
+
+services:
+  profile:
+    url: ${PROFILE_SERVICE_URL:-"http://localhost:8001"}
+    timeout: 5.0
+  explorer:
+    url: ${EXPLORER_SERVICE_URL:-"http://localhost:8002"}
+    timeout: 30.0 # High timeout for agentic search
+  interpreter:
+    url: ${INTERPRETER_SERVICE_URL:-"http://localhost:8003"}
+    timeout: 20.0
+  judge:
+    url: ${JUDGE_SERVICE_URL:-"http://localhost:8004"}
+    timeout: 5.0
+
+redis:
+  host: ${REDIS_HOST:-"localhost"}
+  port: 6379
+  db: 0
+
+interpreter:
+  extraction_targets:
+    - data_collection_flags
+    - third_party_sharing
+    - retention_policy
+    - encryption
