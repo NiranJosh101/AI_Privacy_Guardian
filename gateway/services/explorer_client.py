@@ -1,31 +1,44 @@
-# services/explorer_client.py
 import httpx
+import re
 from models.schemas import ExplorerOutput
 from configs.config_manager import cfg
 from fastapi import HTTPException
 
 class ExplorerClient:
     def __init__(self):
-        self.url = cfg.services['explorer'].url
-        self.timeout = cfg.services['explorer'].timeout # Usually 30s+
+        raw_url = cfg.services['explorer'].url
+        
+        # 1. Resolve potential shell-style defaults if the parser failed
+        # This regex looks for the URL inside ${VAR:-"URL"}
+        match = re.search(r':-"?([^"}]*)"?\}', raw_url)
+        if match:
+            self.url = match.group(1)
+        else:
+            self.url = raw_url
+
+        # 2. Defensive Protocol Check
+        if not self.url.startswith(('http://', 'https://')):
+            self.url = f"http://{self.url}"
+            
+        self.timeout = cfg.services['explorer'].timeout
 
     async def discover_site_content(self, target_url: str) -> ExplorerOutput:
-        """
-        Sends the URL to the Explorer Service for LangGraph-based discovery.
-        """
         async with httpx.AsyncClient() as client:
             try:
+                # This log will tell you EXACTLY what it resolved to
+                print(f"📡 ExplorerClient calling: {self.url}/explore")
+                
                 response = await client.post(
                     f"{self.url}/explore",
                     json={"url": target_url},
                     timeout=self.timeout
                 )
                 response.raise_for_status()
-                
-                # Convert the Agent's output into our strict Schema
                 return ExplorerOutput(**response.json())
                 
-            except httpx.TimeoutException:
-                raise HTTPException(status_code=504, detail="Explorer Service timed out during agentic search")
             except Exception as e:
-                raise HTTPException(status_code=500, detail=f"Explorer Error: {str(e)}")
+                # Inclusion of self.url here makes debugging the next fail much easier
+                raise HTTPException(
+                    status_code=500, 
+                    detail=f"Explorer Error calling {self.url}: {str(e)}"
+                )

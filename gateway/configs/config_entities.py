@@ -29,3 +29,6 @@ class MasterConfig(BaseModel):
     services: Dict[str, ServiceConfig]
     redis: RedisConfig
     interpreter: InterpreterConfig  # NEW
+    db_url: str  
+
+

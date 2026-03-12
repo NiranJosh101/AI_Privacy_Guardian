@@ -38,17 +38,32 @@ async def start_scan(request: ScanRequest, background_tasks: BackgroundTasks):
     
     return jobs[job_id]
 
+
+def sanitize_url(url: str) -> str:
+    """Ensures the URL has a protocol prefix."""
+    if not url.startswith(('http://', 'https://')):
+        # You can default to https or check if it's localhost
+        return f"https://{url}"
+    return url
+
+
 async def run_orchestration_chain(job_id: str, user_id: str, url: str):
     try:
+        # Sanitize before doing anything else
+        clean_url = sanitize_url(url)
+        print(f"DEBUG: Original URL: {url} -> Cleaned URL: {clean_url}") 
+        
         # 1. Identity Check (Local DB)
         persona = await db.get_persona_by_id(user_id)
         if not persona:
-            jobs[job_id]["status"] = ScanStage.IDLE
+            # If no persona, we can't judge. Mark as IDLE or FAILED
+            jobs[job_id]["status"] = ScanStage.IDLE 
             return
 
-        # 2. Explorer (Discovery)
+        # 2. Explorer (Discovery) 
+        # FIX: PASS clean_url HERE INSTEAD OF url
         jobs[job_id]["status"] = ScanStage.DISCOVERY
-        explorer_data = await explorer.discover_site_content(url)
+        explorer_data = await explorer.discover_site_content(clean_url)
 
         # 3. Interpreter (Reasoning)
         jobs[job_id]["status"] = ScanStage.REASONING
@@ -64,7 +79,8 @@ async def run_orchestration_chain(job_id: str, user_id: str, url: str):
 
     except Exception as e:
         print(f"Pipeline Error for job {job_id}: {str(e)}")
-        jobs[job_id]["status"] = ScanStage.IDLE # Or add a FAILED stage
+        # If your enum supports it, use ScanStage.FAILED
+        jobs[job_id]["status"] = ScanStage.IDLE
 
 @router.get("/status/{job_id}", response_model=ScanStatusResponse)
 async def get_scan_status(job_id: str):

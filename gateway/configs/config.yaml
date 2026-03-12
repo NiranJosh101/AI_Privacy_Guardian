@@ -9,13 +9,13 @@ services:
     url: ${PROFILE_SERVICE_URL:-"http://localhost:8001"}
     timeout: 5.0
   explorer:
-    url: ${EXPLORER_SERVICE_URL:-"http://localhost:8002"}
+    url: ${EXPLORER_SERVICE_URL:-"http://localhost:8001"}
     timeout: 30.0 # High timeout for agentic search
   interpreter:
-    url: ${INTERPRETER_SERVICE_URL:-"http://localhost:8003"}
+    url: ${INTERPRETER_SERVICE_URL:-"http://localhost:8001"}
     timeout: 20.0
   judge:
-    url: ${JUDGE_SERVICE_URL:-"http://localhost:8004"}
+    url: ${JUDGE_SERVICE_URL:-"http://localhost:8001"}
     timeout: 5.0
 
 redis:
@@ -29,3 +29,6 @@ interpreter:
     - third_party_sharing
     - retention_policy
     - encryption
+
+
+db_url: ${DB_URL:-mongodb://localhost:27017/}

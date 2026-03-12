@@ -1,19 +1,25 @@
 # app/utils/db.py
-import motor.motor_async_engine
+from motor.motor_asyncio import AsyncIOMotorClient
 from configs.config_manager import cfg
 from models.schemas import UserPersona
 
-class DatabaseManager:
-    def __init__(self):
-        # Example using MongoDB, but the logic applies to Postgres too
-        self.client = motor.motor_async_engine.AsyncIOMotorClient(cfg.db_url)
-        self.db = self.client.privacy_guardian
 
+class DatabaseManager:
     async def get_persona_by_id(self, user_id: str) -> UserPersona:
-        """Looks up the persona directly in the Gateway's DB."""
-        doc = await self.db.personas.find_one({"userId": user_id})
-        if not doc:
-            return None
-        return UserPersona(**doc)
+        # MOCK DATA: Skip the real DB and return a default persona
+        return UserPersona(
+            userId=user_id,
+            persona="Balanced",
+            constraints={
+                "no_sharing": True,
+                "no_tracking": True,
+                "no_fingerprinting": False,
+                "no_ads": True,
+                "max_retention_30": True,
+                "require_encryption": True,
+                "no_location": False,
+                "no_biometrics": False
+            }
+        )
 
 db = DatabaseManager()

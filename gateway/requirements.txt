@@ -6,3 +6,4 @@ PyYAML
 python-dotenv
 pyyaml
 pydantic
+motor
