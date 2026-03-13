@@ -43,7 +43,7 @@ def sanitize_url(url: str) -> str:
     """Ensures the URL has a protocol prefix."""
     if not url.startswith(('http://', 'https://')):
         # You can default to https or check if it's localhost
-        return f"https://{url}"
+        return f"http://{url}"
     return url
 
 

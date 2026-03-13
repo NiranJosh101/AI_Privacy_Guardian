@@ -6,30 +6,36 @@ from fastapi import HTTPException
 
 class ExplorerClient:
     def __init__(self):
-        raw_url = cfg.services['explorer'].url
+        # 1. Get the raw value from the config manager
+        raw_val = str(cfg.services['explorer'].url)
         
-        # 1. Resolve potential shell-style defaults if the parser failed
-        # This regex looks for the URL inside ${VAR:-"URL"}
-        match = re.search(r':-"?([^"}]*)"?\}', raw_url)
-        if match:
-            self.url = match.group(1)
+        # 2. If it contains the shell variable syntax, extract the fallback
+        if ":-" in raw_val:
+            # Extract everything between :- and the closing }
+            # Then strip quotes and whitespace
+            extracted = raw_val.split(":-")[-1].strip("}\"' ")
+            self.url = extracted
         else:
-            self.url = raw_url
+            self.url = raw_val.strip("\"' ")
 
-        # 2. Defensive Protocol Check
+        # 3. Final Protocol Check
         if not self.url.startswith(('http://', 'https://')):
             self.url = f"http://{self.url}"
             
         self.timeout = cfg.services['explorer'].timeout
+        # This will print to the console the MOMENT the gateway starts
+        print(f"✅ ExplorerClient Initialized with URL: {self.url}")
 
     async def discover_site_content(self, target_url: str) -> ExplorerOutput:
         async with httpx.AsyncClient() as client:
+            # Construct the endpoint
+            endpoint = f"{self.url.rstrip('/')}/explore"
+            
             try:
-                # This log will tell you EXACTLY what it resolved to
-                print(f"📡 ExplorerClient calling: {self.url}/explore")
+                print(f"📡 Requesting: {endpoint} | Target: {target_url}")
                 
                 response = await client.post(
-                    f"{self.url}/explore",
+                    endpoint,
                     json={"url": target_url},
                     timeout=self.timeout
                 )
@@ -37,8 +43,7 @@ class ExplorerClient:
                 return ExplorerOutput(**response.json())
                 
             except Exception as e:
-                # Inclusion of self.url here makes debugging the next fail much easier
                 raise HTTPException(
                     status_code=500, 
-                    detail=f"Explorer Error calling {self.url}: {str(e)}"
+                    detail=f"Explorer Error at {endpoint}: {str(e)}"
                 )

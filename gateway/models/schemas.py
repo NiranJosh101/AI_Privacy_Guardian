@@ -62,6 +62,7 @@ class ExplorerOutput(BaseModel):
 
 class SiteProfile(BaseModel):
     domain: str
+    last_updated: Optional[str]
     data_collection: Dict[str, bool] = Field(
         description="Flags for: email, location, biometrics, usage_stats, etc."
     )

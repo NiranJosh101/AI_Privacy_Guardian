@@ -6,7 +6,15 @@ from fastapi import HTTPException
 
 class InterpreterClient:
     def __init__(self):
-        self.url = cfg.services['interpreter'].url
+        base_url = cfg.services['interpreter'].url
+        
+        # Strip any accidental quotes and check protocol
+        base_url = base_url.strip().replace('"', '').replace("'", "")
+        
+        if not base_url.startswith(('http://', 'https://')):
+            base_url = f"http://{base_url}"
+            
+        self.url = base_url
         self.timeout = cfg.services['interpreter'].timeout
 
     async def extract_site_profile(self, explorer_data: ExplorerOutput) -> SiteProfile:
@@ -16,6 +24,7 @@ class InterpreterClient:
             "content": explorer_data.raw_markdown,
             "extraction_targets": cfg.interpreter.extraction_targets
         }
+        print(f"DEBUG: Sending to Interpreter: {payload}") 
 
         async with httpx.AsyncClient() as client:
             try:

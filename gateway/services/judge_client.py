@@ -6,8 +6,18 @@ from fastapi import HTTPException
 
 class JudgeClient:
     def __init__(self):
-        self.url = cfg.services['judge'].url
-        self.timeout = cfg.services['judge'].timeout # Should be fast (~5s)
+        # 1. Get the raw URL from config
+        raw_url = cfg.services['judge'].url
+        
+        # 2. Sanitize: Remove quotes and whitespace
+        clean_url = raw_url.strip().replace('"', '').replace("'", "")
+        
+        # 3. Force protocol if missing
+        if not clean_url.startswith(('http://', 'https://')):
+            clean_url = f"http://{clean_url}"
+            
+        self.url = clean_url
+        self.timeout = cfg.services['judge'].timeout
 
     async def generate_verdict(self, persona: UserPersona, site_profile: SiteProfile) -> ScanVerdict:
         """
