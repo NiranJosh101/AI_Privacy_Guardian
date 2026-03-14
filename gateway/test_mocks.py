@@ -37,21 +37,37 @@ async def mock_interpreter(request: dict):
     }
 
 # --- MOCK JUDGE (Service 6) ---
+# @app.post("/judge")
+# async def mock_judge(request: dict):
+#     print("⚖️ Judge: Evaluating logic...")
+#     # Simulate a violation find
+#     return {
+#         "verdict": "FLAG",
+#         "risk_score": 95,
+#         "explanation": "This site collects location data and shares it with brokers, which violates your 'Balanced' persona constraints.",
+#         "violations": [
+#             {
+#                 "type": "Data Sharing",
+#                 "severity": "High",
+#                 "description": "Fuck you, third-party sharing is enabled with no opt-out."
+#             },
+#             {
+#                 "type": "Data Retention",
+#                 "severity": "Medium",
+#                 "description": "Data is retained for 2 years, which exceeds the 1-year limit."
+#             }
+#         ]
+#     }
+
+
 @app.post("/judge")
 async def mock_judge(request: dict):
-    print("⚖️ Judge: Evaluating logic...")
-    # Simulate a violation find
+    print("⚖️ Judge: Evaluating logic (Safe Path)...")
     return {
-        "verdict": "FLAG",
-        "risk_score": 90,
-        "explanation": "This site collects location data and shares it with brokers, which violates your 'Balanced' persona constraints.",
-        "violations": [
-            {
-                "type": "Data Sharing",
-                "severity": "High",
-                "description": "Third-party sharing is enabled with no opt-out."
-            }
-        ]
+        "verdict": "CLEAR",
+        "risk_score": 12,
+        "explanation": "This site follows industry standards for data minimization. No tracking beacons or excessive data retention policies were detected.",
+        "violations": []  # This MUST be an empty list
     }
 
 if __name__ == "__main__":
