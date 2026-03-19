@@ -1,0 +1,15 @@
+browser_settings:
+  headless: true
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AI-Guardian/1.0"
+  timeout: 30000 # 30 seconds
+
+extraction_settings:
+  magic_markdown_mode: true
+  remove_overlay_elements: true # Popups, banners
+
+search_discovery:
+  # Define categories so the LLM knows what to look for
+  document_categories:
+    privacy: ["privacy", "data protection", "gdpr", "privacy-policy"]
+    terms: ["terms of use", "tos", "conditions", "agreement"]
+    legal: ["disclaimer", "legal notice", "compliance", "dmca"]
