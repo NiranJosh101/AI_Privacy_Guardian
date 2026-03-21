@@ -50,13 +50,11 @@ class ScanStatusResponse(BaseModel):
 
 
 
-class ExplorerOutput(BaseModel):
-    url: str
-    page_title: Optional[str] = None
-    raw_markdown: str = Field(..., description="High-density markdown from Crawl4AI")
-    found_legal_links: List[str] = Field(default_factory=list, description="Links to Privacy Policy, TOS, etc.")
-    crawl_depth: int
-    status: str # "success" or "partial_match"
+class ExplorerResponse(BaseModel):
+    base_url: str
+    is_blocked: bool
+    final_report: str
+    error_log: list[str]
 
 
 

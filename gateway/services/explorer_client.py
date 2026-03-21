@@ -1,6 +1,6 @@
 import httpx
 import re
-from models.schemas import ExplorerOutput
+from models.schemas import ExplorerResponse
 from configs.config_manager import cfg
 from fastapi import HTTPException
 
@@ -23,7 +23,7 @@ class ExplorerClient:
        
         print(f"✅ ExplorerClient Initialized with URL: {self.url}")
 
-    async def discover_site_content(self, target_url: str) -> ExplorerOutput:
+    async def discover_site_content(self, target_url: str) -> ExplorerResponse:
         async with httpx.AsyncClient() as client:
            
             endpoint = f"{self.url.rstrip('/')}/explore"
@@ -37,7 +37,7 @@ class ExplorerClient:
                     timeout=self.timeout
                 )
                 response.raise_for_status()
-                return ExplorerOutput(**response.json())
+                return ExplorerResponse(**response.json())
                 
             except Exception as e:
                 raise HTTPException(
