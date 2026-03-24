@@ -1,30 +1,41 @@
+import os
 import json
+
 from typing import Dict, Any
-from langchain_openai import ChatOpenAI
+from dotenv import load_dotenv
+
+from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, HumanMessage
 from app.agent.state import ExplorerState
 
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+
+
+load_dotenv()
+
+llm = ChatGroq(
+    model="llama-3.3-70b-versatile", 
+    temperature=0,
+    api_key=os.getenv("GROQ_API_KEY")
+)
 
 async def classification_node(state: ExplorerState) -> Dict[str, Any]:
     """
-    Refines the regulatory_map by selecting the most authoritative links.
+    Refines the regulatory_map by selecting the most authoritative links using Groq.
     """
-
     raw_map = state.get("regulatory_map", {})
 
     if not any(raw_map.values()):
         return {"regulatory_map": {}}
 
-    # Simplify input (reduce tokens + noise)
+  
     simplified_map = {
         cat: [item["url"] for item in links]
         for cat, links in raw_map.items()
     }
 
+    
     prompt = f"""
         You are a Legal Data Engineer.
-
         From the given categories of URLs, select the SINGLE most authoritative and relevant URL for each category.
 
         Guidelines:
@@ -34,26 +45,30 @@ async def classification_node(state: ExplorerState) -> Dict[str, Any]:
         4. If no good option exists, return an empty list for that category.
 
         Input:
-        {simplified_map}
+        {json.dumps(simplified_map, indent=2)}
 
-        Return ONLY valid JSON in this format:
+        Return ONLY a JSON object with this exact structure:
         {{
-        "privacy": ["url"],
-        "terms": ["url"],
-        "legal": ["url"]
+            "privacy": ["url"],
+            "terms": ["url"],
+            "legal": ["url"]
         }}
     """
 
     try:
+       
         response = await llm.ainvoke([
-            SystemMessage(content="You strictly return valid JSON only."),
+            SystemMessage(content="You are a JSON assistant. You output raw JSON only, no markdown headers or conversational text."),
             HumanMessage(content=prompt)
         ])
 
-        refined_map = json.loads(response.content)
+       
+        content = response.content.strip().removeprefix("```json").removesuffix("```").strip()
+        refined_map = json.loads(content)
 
-    except Exception:
-        # Safe fallback: pick top link from each category
+    except Exception as e:
+        print(f"LLM Error, falling back: {e}")
+        
         refined_map = {
             cat: links[:1] for cat, links in simplified_map.items()
         }

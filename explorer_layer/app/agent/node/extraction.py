@@ -8,7 +8,7 @@ async def extraction_node(state: ExplorerState) -> Dict[str, Any]:
     Parallelized extraction of all identified regulatory documents.
     """
     # 1. Collect all unique URLs from the refined map
-    # We use a set to avoid scraping the same URL twice if it's in two categories
+    # use a set to avoid scraping the same URL twice if it's in two categories
     urls_to_scrape = set()
     for category_links in state["regulatory_map"].values():
         for link_data in category_links:
@@ -22,7 +22,7 @@ async def extraction_node(state: ExplorerState) -> Dict[str, Any]:
     async def scrape_task(url: str) -> tuple[str, str]:
         """Helper to run a single tool call and return (url, content)"""
         try:
-            # Note: The client handles the stdio communication for each call
+            # The client handles the stdio communication for each call
             content = await client.call_tool("extract_policy_content", {"url": url})
             return (url, content)
         except Exception as e:

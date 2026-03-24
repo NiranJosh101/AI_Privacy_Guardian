@@ -3,10 +3,7 @@
 import time
 import httpx
 from typing import Dict, Any, Optional
-from mcp.server.fastmcp import FastMCP
-
-mcp = FastMCP()
-
+from app.mcp.registry import mcp
 
 class SiteValidator:
     """

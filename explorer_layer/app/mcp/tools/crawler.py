@@ -1,51 +1,55 @@
 import asyncio
 from typing import Optional
-from crawl4ai import AsyncWebCrawler, CrawlerRunConfig, CacheMode, MarkdownGenerationConfig
+from crawl4ai import AsyncWebCrawler, CrawlerRunConfig, CacheMode
 from crawl4ai.content_filter_strategy import PruningContentFilter
-from app.core.config_manager import settings
+from crawl4ai.markdown_generation_strategy import DefaultMarkdownGenerator
+from app.mcp.registry import mcp
+from app.config.config_manager import settings
 
 class PolicyExtractor:
     """
-    The 'Surgical' tool of the Explorer. 
-    Converts messy legal pages into high-density Markdown.
+    Converts messy legal pages into high-density Markdown using 
+    modern Crawl4AI generation strategies.
     """
 
     def __init__(self):
-        # We use a Pruning filter to strip navbars, footers, and scripts
+        # 1. Define the Filter (Noise Removal)
         self.content_filter = PruningContentFilter(
-            threshold=0.45,       # Higher = stricter removal of 'noise'
-            min_word_count=50     # Ignore small text blocks (links/footers)
+            threshold=0.45,
+            min_word_count=50
         )
         
-        # Configure how the Markdown is generated
-        self.md_config = MarkdownGenerationConfig(
+        # 2. Define the Generator (Strategy Replacement for MarkdownGenerationConfig)
+        self.md_generator = DefaultMarkdownGenerator(
             content_filter=self.content_filter,
-            ignore_links=True,    # We don't need links inside the policy text
-            ignore_images=True    # Legal docs don't need images
+            options={
+                "ignore_links": True,
+                "ignore_images": True,
+                "skip_internal_links": True
+            }
         )
 
     async def extract_markdown(self, url: str) -> Optional[str]:
-        """
-        Executes a deep crawl and returns clean Markdown.
-        """
         run_config = CrawlerRunConfig(
-            cache_mode=CacheMode.ENABLED, # Cache legal docs to save compute
-            markdown_generator=self.md_config,
+            cache_mode=CacheMode.ENABLED,
+            markdown_generator=self.md_generator, # Strategy injected here
             wait_for_images=False,
             headless=settings.browser.headless,
             user_agent=settings.browser.user_agent
         )
 
         async with AsyncWebCrawler() as crawler:
+            # Note: Ensure you've run 'python -m crawl4ai.setup' to install Playwright
             result = await crawler.arun(url=url, config=run_config)
             
             if result.success:
-                # result.markdown_v2 provides structured, filtered text
-                return result.markdown_v2.raw_markdown
+                # In modern Crawl4AI, markdown_v2 is a structured object
+                return result.markdown_v2.raw_markdown if result.markdown_v2 else result.markdown
             
             return None
 
 # MCP Tool Wrapper
+# Assuming 'mcp' is initialized in your server.py or imported here
 @mcp.tool()
 async def extract_policy_content(url: str) -> str:
     """

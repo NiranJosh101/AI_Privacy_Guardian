@@ -5,7 +5,7 @@ from enum import Enum
 
 # 1. Define Request/Response Schemas
 class ExploreRequest(BaseModel):
-    url: HttpUrl
+    url: str
 
 class ExploreResponse(BaseModel):
     base_url: str

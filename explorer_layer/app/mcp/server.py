@@ -1,5 +1,3 @@
-# app/mcp/server.py
-
 from mcp.server.fastmcp import FastMCP
 
 # Import tool logic (NOT decorators)

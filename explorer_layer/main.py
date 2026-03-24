@@ -1,7 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, HttpUrl
 from app.agent.graph import explorer_agent
-from app.core.config_manager import settings
 from app.models.schemas import ExploreRequest, ExploreResponse
 
 app = FastAPI(

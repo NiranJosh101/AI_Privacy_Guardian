@@ -15,7 +15,7 @@ async def discovery_node(state: ExplorerState) -> Dict[str, Any]:
         # Call the LinkScout tool (defined in our mcp/server.py)
         # It returns a Dict[str, List[Dict]] (the categorized candidates)
         raw_suite = await client.call_tool(
-            "scout_regulatory_links", 
+            "discover_regulatory_links", 
             {"url": state["base_url"]}
         )
         

@@ -1,5 +1,5 @@
 import httpx
-from models.schemas import SiteProfile, ExplorerOutput
+from models.schemas import SiteProfile, ExplorerResponse
 from configs.config_manager import cfg
 from fastapi import HTTPException
 
@@ -17,7 +17,7 @@ class InterpreterClient:
         self.url = base_url
         self.timeout = cfg.services['interpreter'].timeout
 
-    async def extract_site_profile(self, explorer_data: ExplorerOutput) -> SiteProfile:
+    async def extract_site_profile(self, explorer_data: ExplorerResponse) -> SiteProfile:
 
         payload = {
             "domain": explorer_data.url,

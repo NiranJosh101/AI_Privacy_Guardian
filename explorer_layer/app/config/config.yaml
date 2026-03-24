@@ -8,7 +8,7 @@ extraction_settings:
   remove_overlay_elements: true # Popups, banners
 
 search_discovery:
-  # Define categories so the LLM knows what to look for
+  max_links_to_analyze: 5
   document_categories:
     privacy: ["privacy", "data protection", "gdpr", "privacy-policy"]
     terms: ["terms of use", "tos", "conditions", "agreement"]
