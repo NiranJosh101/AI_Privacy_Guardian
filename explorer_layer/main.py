@@ -14,10 +14,8 @@ app = FastAPI(
 
 @app.post("/explore", response_model=ExploreResponse)
 async def run_exploration(request: ExploreRequest):
-    """
-    Triggers the LangGraph agent to validate, scout, 
-    extract, and aggregate site legal data.
-    """
+    print(f"--- DEBUG: Received request for {request.url} ---") # ADD THIS
+    
     initial_state = {
         "base_url": str(request.url),
         "regulatory_map": {},
@@ -28,18 +26,21 @@ async def run_exploration(request: ExploreRequest):
     }
 
     try:
-        # Execute the graph
+        print("--- DEBUG: Starting Agent Invoke ---") # ADD THIS
         final_state = await explorer_agent.ainvoke(initial_state)
+        print("--- DEBUG: Agent Finished ---") # ADD THIS
         
         return ExploreResponse(
-            base_url=final_state["base_url"],
-            is_blocked=final_state["is_blocked"],
+            base_url=final_state.get("base_url", ""),
+            is_blocked=final_state.get("is_blocked", False),
             final_report=final_state.get("final_report", ""),
             error_log=final_state.get("error_log", [])
         )
-
+    
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Agent Execution Error: {str(e)}")
+        print(f"--- DEBUG: Caught Error: {e} ---") # ADD THIS
+        raise HTTPException(status_code=500, detail=str(e))
+    
 
 # Health Check
 @app.get("/health")

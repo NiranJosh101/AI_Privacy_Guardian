@@ -8,12 +8,15 @@ from app.agent.node.aggregation import aggregation_node
 
 # Define the Routing Logic
 def should_continue(state: ExplorerState):
-    """
-    The 'Circuit Breaker' logic. 
-    If the validator or discovery finds a block, we jump to the end.
-    """
-    if state.get("is_blocked"):
+    
+    is_blocked = state.get("is_blocked", False)
+    print(f"--- DEBUG: Routing Check | is_blocked: {is_blocked} ---")
+    
+    if is_blocked:
+        print("--- DEBUG: Routing to END ---")
         return "end"
+    
+    print("--- DEBUG: Routing to DISCOVERY ---")
     return "continue"
 
 # Build the Graph

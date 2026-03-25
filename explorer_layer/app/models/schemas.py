@@ -10,5 +10,5 @@ class ExploreRequest(BaseModel):
 class ExploreResponse(BaseModel):
     base_url: str
     is_blocked: bool
-    final_report: str
-    error_log: list[str]
+    final_report: Optional[str] = None
+    error_log: List[str]

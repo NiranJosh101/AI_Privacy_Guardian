@@ -7,7 +7,7 @@ from app.mcp.tools.validator import SiteValidator
 
 
 # 1. Initialize ONE MCP Server
-mcp = FastMCP("ExplorerTools")
+mcp = FastMCP("ExplorerTools", host="0.0.0.0", port=8002)
 
 
 # 2. Register Scout Tool
@@ -49,4 +49,4 @@ async def validate_site_access(url: str) -> dict:
 
 # 5. Run Server
 if __name__ == "__main__":
-    mcp.run()
+    mcp.run(transport="sse")
