@@ -7,8 +7,8 @@ from enum import Enum
 class ExploreRequest(BaseModel):
     url: str
 
-class ExploreResponse(BaseModel):
+class ExplorerResponse(BaseModel):
     base_url: str
     is_blocked: bool
-    final_report: Optional[str] = None
+    final_report: str
     error_log: List[str]

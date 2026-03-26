@@ -14,26 +14,59 @@ async def validation_node(state: ExplorerState) -> Dict[str, Any]:
         await client.connect()
         
         # 1. Call the tool
-        raw_result = await client.call_tool(
+        response = await client.call_tool(
             "validate_site_access", 
             {"url": state["base_url"]}
         )
         
-        # 2. MCP returns a list of content objects. We need the first one's text.
-        # Then we parse that string back into a Python dictionary.
-        result = json.loads(raw_result.text)
-        
+        # 2. Extract content list
+        content_list = getattr(response, 'content', response)
+
+        if not content_list or not isinstance(content_list, list):
+            raise ValueError(f"Invalid MCP response format: {type(content_list)}")
+
+        # ✅ FIX 1: Correctly grab first item
+        first_item = content_list[0]
+
+        # Debug (optional but useful)
+        print(f"--- DEBUG: first_item type: {type(first_item)} ---")
+        print(f"--- DEBUG: first_item raw: {first_item} ---")
+
+        # 3. Normalize content into `result` dict
+        if isinstance(first_item, dict):
+            # ✅ Already parsed — best case
+            result = first_item
+
+        elif hasattr(first_item, "text"):
+            # MCP TextContent object
+            try:
+                result = json.loads(first_item.text)
+            except json.JSONDecodeError:
+                raise ValueError(f"Invalid JSON in TextContent: {first_item.text}")
+
+        elif isinstance(first_item, str):
+            # Raw string
+            try:
+                result = json.loads(first_item)
+            except json.JSONDecodeError:
+                raise ValueError(f"Invalid JSON string: {first_item}")
+
+        else:
+            raise ValueError(f"Unsupported content type: {type(first_item)}")
+
         print(f"--- DEBUG: Validator Result: {result} ---")
         
-        # 3. Check 'can_proceed' from the parsed tool output
+        # 4. Decision logic
         if not result.get("can_proceed", False):
             print(f"--- DEBUG: Site is blocked or inaccessible: {state['base_url']} ---")
             return {
                 "is_blocked": True,
-                "error_log": [f"Site Validation Failed: {result.get('error', 'Blocked by site policy or technical error')}"]
+                "error_log": [
+                    f"Site Validation Failed: {result.get('error', 'Blocked or inaccessible')}"
+                ]
             }
 
-        # 4. Successful validation
+        # 5. Success
         print(f"--- DEBUG: Validation Successful. Moving to Discovery. ---")
         return {
             "base_url": result.get("final_url", state["base_url"]),
@@ -43,6 +76,10 @@ async def validation_node(state: ExplorerState) -> Dict[str, Any]:
 
     except Exception as e:
         print(f"--- DEBUG: Validator Node CRASHED: {str(e)} ---")
-        return {"is_blocked": True, "error_log": [f"Validator Node Error: {str(e)}"]}
+        return {
+            "is_blocked": True, 
+            "error_log": [f"Validator Node Error: {str(e)}"]
+        }
+
     finally:
         await client.disconnect()

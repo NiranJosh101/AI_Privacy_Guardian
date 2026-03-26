@@ -20,8 +20,8 @@ class InterpreterClient:
     async def extract_site_profile(self, explorer_data: ExplorerResponse) -> SiteProfile:
 
         payload = {
-            "domain": explorer_data.url,
-            "content": explorer_data.raw_markdown,
+            "domain": explorer_data.base_url,
+            "content": explorer_data.final_report,
             "extraction_targets": cfg.interpreter.extraction_targets
         }
         print(f"DEBUG: Sending to Interpreter: {payload}") 
