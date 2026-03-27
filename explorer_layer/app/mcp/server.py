@@ -1,3 +1,5 @@
+from typing import Dict, List, Any
+
 from mcp.server.fastmcp import FastMCP
 
 # Import tool logic (NOT decorators)
@@ -12,28 +14,28 @@ mcp = FastMCP("ExplorerTools", host="0.0.0.0", port=8002)
 
 # 2. Register Scout Tool
 @mcp.tool()
-async def scout_regulatory_links(url: str) -> dict:
+async def discover_regulatory_links(url: str) -> Dict[str, Any]:
     """
-    Finds and categorizes regulatory links (Privacy, Terms, Legal) 
-    on a given landing page.
+    Scans a website and returns a categorized map of legal/regulatory links.
     """
     scout = LinkScout()
     return await scout.find_regulatory_suite(url)
 
 
+
 # 3. Register Extractor Tool
 @mcp.tool()
-async def extract_content(url: str) -> str:
+async def extract_policy_content(url: str) -> str:
     """
-    Performs a high-fidelity crawl of a specific URL to extract 
-    noise-free, legal-focused Markdown.
+    Performs a high-fidelity crawl of a specific legal URL and 
+    returns a clean Markdown version of the text content.
     """
     extractor = PolicyExtractor()
     content = await extractor.extract_markdown(url)
-
+    
     if not content:
         return f"Error: Could not extract content from {url}"
-
+    
     return content
 
 

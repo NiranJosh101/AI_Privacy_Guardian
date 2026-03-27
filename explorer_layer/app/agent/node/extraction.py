@@ -1,49 +1,64 @@
+import asyncio
 import json
+from typing import Dict, List, Any
 from app.agent.state import ExplorerState
 from app.mcp.client import MCPClient
-from typing import Dict, Any
 
-async def discovery_node(state: ExplorerState) -> Dict[str, Any]:
+async def extraction_node(state: ExplorerState) -> Dict[str, Any]:
     """
-    Calls the MCP 'discover_regulatory_links' tool to find potential legal URLs.
+    Parallelized extraction of all identified regulatory documents.
     """
+    # 1. Collect all unique URLs from the refined map
+    # This now works because Discovery Node returns a Dict!
+    urls_to_scrape = set()
+    regulatory_map = state.get("regulatory_map", {})
+    
+    for category_links in regulatory_map.values():
+        for link_data in category_links:
+            if isinstance(link_data, dict) and "url" in link_data:
+                urls_to_scrape.add(link_data["url"])
+
+    if not urls_to_scrape:
+        return {"error_log": ["No URLs found to extract."]}
+
     client = MCPClient()
     
+    async def scrape_task(url: str) -> tuple[str, str]:
+        """Helper to run a single tool call and return (url, content_text)"""
+        try:
+            response = await client.call_tool("extract_policy_content", {"url": url})
+            
+            # ✅ PEEL THE ONION: Get the actual text from the MCP response
+            content_list = getattr(response, 'content', response)
+            if content_list and isinstance(content_list, list) and len(content_list) > 0:
+                first_item = content_list
+                content_text = first_item.text if hasattr(first_item, 'text') else str(first_item)
+                return (url, content_text)
+            
+            return (url, "No content found in MCP response")
+        except Exception as e:
+            return (url, f"Failed to extract {url}: {str(e)}")
+
     try:
         await client.connect()
         
-        # 1. Call the tool
-        response = await client.call_tool(
-            "discover_regulatory_links", 
-            {"url": state["base_url"]}
-        )
+        # 2. Parallel Execution
+        print(f"--- DEBUG: Extracting {len(urls_to_scrape)} URLs in parallel ---")
+        tasks = [scrape_task(url) for url in urls_to_scrape]
+        results = await asyncio.gather(*tasks)
         
-        # 2. Extract the content list from the CallToolResult
-        content_list = getattr(response, 'content', response)
+        # 3. Convert results list back into a dictionary
+        # new_content now maps URL -> Actual String Content
+        new_content = {url: content for url, content in results}
         
-        if not content_list or not isinstance(content_list, list) or len(content_list) == 0:
-             raise ValueError("Discovery tool returned no content")
-
-        # 3. Get the raw text from the first item and parse it
-        first_item = content_list
-        content_text = first_item.text if hasattr(first_item, 'text') else str(first_item)
-        
-        # CRITICAL: Parse the string into a DICT before saving to state
-        # If your tool returns categorization, this will now be a proper Dictionary
-        parsed_map = json.loads(content_text)
-
-        print(f"--- DEBUG: Discovery Found {len(parsed_map)} Categories ---")
-
         return {
-            "regulatory_map": parsed_map, # Now this is a Dict, not a List of objects
+            "content_store": new_content,
             "is_blocked": False
         }
-        
+
     except Exception as e:
-        print(f"--- DEBUG: Discovery Node CRASHED: {str(e)} ---")
-        return {
-            "error_log": [f"Discovery failed: {str(e)}"],
-            "is_blocked": True
-        }
+        print(f"--- DEBUG: Extraction Node CRASHED: {str(e)} ---")
+        return {"error_log": [f"Extraction batch failed: {str(e)}"]}
+    
     finally:
         await client.disconnect()
