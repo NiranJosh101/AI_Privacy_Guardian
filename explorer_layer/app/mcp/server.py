@@ -19,8 +19,22 @@ async def discover_regulatory_links(url: str) -> Dict[str, Any]:
     Scans a website and returns a categorized map of legal/regulatory links.
     """
     scout = LinkScout()
-    return await scout.find_regulatory_suite(url)
-
+    try:
+        # Call the logic
+        results = await scout.find_regulatory_suite(url)
+        
+        # DEBUG: Check if we actually have data before returning to MCP
+        has_data = any(len(links) > 0 for links in results.values())
+        print(f"--- DEBUG: MCP Tool Final Check - Data Found: {has_data} ---")
+        
+        # Ensure we return a clean dict that MCP can serialize
+        return {
+            "status": "success" if has_data else "no_links_found",
+            "url": url,
+            "categories": results
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e), "categories": {}}
 
 
 # 3. Register Extractor Tool

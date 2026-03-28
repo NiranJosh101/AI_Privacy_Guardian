@@ -45,6 +45,15 @@ async def run_exploration(request: ExploreRequest):
 async def health():
     return {"status": "online", "service": "explorer"}
 
+
+
 if __name__ == "__main__":
     import uvicorn
+    import sys
+    import asyncio
+
+    # CRITICAL WINDOWS FIX:
+    if sys.platform == 'win32':
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    
     uvicorn.run(app, host="0.0.0.0", port=8001)
