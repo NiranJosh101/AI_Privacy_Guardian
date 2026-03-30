@@ -7,6 +7,35 @@ from app.mcp.client import MCPClient
 
 logger = logging.getLogger(__name__)
 
+
+def extract_mcp_text_content(response) -> str:
+    """
+    Safely extracts the first valid text payload from an MCP response.
+    Raises ValueError if no valid text content is found.
+    """
+    content_items = getattr(response, "content", [])
+
+    if not content_items:
+        raise ValueError("MCP response has no content")
+
+    for item in content_items:
+        # Case 1: TextContent object
+        if hasattr(item, "text") and isinstance(item.text, str) and item.text.strip():
+            return item.text
+
+        # Case 2: dict-like structure
+        if isinstance(item, dict):
+            text = item.get("text")
+            if isinstance(text, str) and text.strip():
+                return text
+
+        # Case 3: raw string (rare fallback, but valid)
+        if isinstance(item, str) and item.strip().startswith("{"):
+            return item
+
+    raise ValueError(f"No valid text payload found in MCP response: {content_items}")
+
+
 async def discovery_node(state: ExplorerState) -> Dict[str, Any]:
     """
     Calls the MCP 'discover_regulatory_links' tool and unwraps the nested 
@@ -23,83 +52,67 @@ async def discovery_node(state: ExplorerState) -> Dict[str, Any]:
 
     if not base_url:
         logger.error("Discovery Node: No base_url provided in state.")
+        update["is_blocked"] = True
+        update["error_log"].append("No base_url provided")
         return update
 
     try:
         await client.connect()
-        
-        # 1. Call the tool
-        response = await client.call_tool("discover_regulatory_links", {"url": base_url})
 
-        # 2. Get the content list from the MCP CallToolResult
-        content_items = getattr(response, "content", [])
-        if not content_items:
-            logger.warning(f"Discovery Node: MCP returned empty content for {base_url}")
+        # 1. Call MCP tool
+        response = await client.call_tool(
+            "discover_regulatory_links",
+            {"url": base_url}
+        )
+
+        # 2. Extract clean text payload (FIXED CORE ISSUE)
+        try:
+            raw_payload = extract_mcp_text_content(response)
+        except ValueError as e:
+            logger.error(f"Discovery Node: {str(e)}")
             update["is_blocked"] = True
-            update["error_log"].append("Tool returned no content")
+            update["error_log"].append(str(e))
             return update
 
-        # --- CRITICAL FIX ---
-        # content_items is a LIST. We must grab the first element.
-        first_content_block = content_items[0]
-        
-        raw_payload = None
-
-        # Check if it's a TextContent object (has .text attribute)
-        if hasattr(first_content_block, "text"):
-            raw_payload = first_content_block.text
-
-
-        # Check if it's a dictionary (standard JSON return)
-        elif isinstance(first_content_block, dict):
-            raw_payload = first_content_block.get("text", first_content_block)
-     
-        else:
-            raw_payload = str(first_content_block)
-        # --- END FIX ---
-
-        if not raw_payload:
+        # 3. Parse JSON safely
+        try:
+            parsed_data = json.loads(raw_payload)
+        except json.JSONDecodeError:
+            logger.error(f"Discovery Node: Failed to parse JSON: {raw_payload[:200]}")
             update["is_blocked"] = True
-            update["error_log"].append("Empty payload from tool")
+            update["error_log"].append("Malformed JSON from tool")
             return update
 
-        raw_payload = raw_payload.strip()
-
-        # 4. Safe JSON Parsing
-        if isinstance(raw_payload, str):
-            try:
-                parsed_data = json.loads(raw_payload)
-            except json.JSONDecodeError:
-                logger.error(f"Discovery Node: Failed to parse JSON: {raw_payload[:100]}")
-                update["is_blocked"] = True
-                update["error_log"].append("Malformed JSON from tool")
-                return update
-        else:
-            parsed_data = raw_payload
-
-        # 5. Unwrap the 'LinkScout' wrapper structure
+        # 4. Extract fields
         status = parsed_data.get("status")
-        categories = parsed_data.get("categories", {})
+        categories_found = parsed_data.get("categories", {})
 
         if status == "error":
-            logger.error(f"Discovery Node: Tool reported error: {parsed_data.get('message')}")
+            message = parsed_data.get("message", "Internal tool error")
+            logger.error(f"Discovery Node: Tool error: {message}")
             update["is_blocked"] = True
-            update["error_log"].append(parsed_data.get("message", "Internal tool error"))
-        elif status == "no_links_found":
-            logger.info(f"Discovery Node: No links matched categories for {base_url}")
-            update["regulatory_map"] = {} 
+            update["error_log"].append(message)
+
+        elif status == "no_links_found" or not categories_found:
+            logger.info(f"Discovery Node: No regulatory links for {base_url}")
+            update["regulatory_map"] = {}
+
         else:
-            logger.info(f"Discovery Node: Successfully retrieved {len(categories)} categories")
-            update["regulatory_map"] = categories
+            logger.info(
+                f"Discovery Node: Success. {len(categories_found)} categories mapped."
+            )
+            update["regulatory_map"] = categories_found
 
     except Exception as e:
         logger.exception(f"Discovery Node: Unexpected failure: {str(e)}")
         update["is_blocked"] = True
         update["error_log"].append(f"Node Exception: {str(e)}")
+
     finally:
         try:
             await client.disconnect()
-        except:
+        except Exception:
             pass
 
+    print(f"--- DISCOVERY COMPLETE: {len(update['regulatory_map'])} categories found ---")
     return update

@@ -42,6 +42,7 @@ class MCPClient:
             logger.exception(f"Connection Failed: {e}")
             raise
 
+
     async def get_available_tools(self):
         if not self.session:
             raise RuntimeError("MCP Client not connected.")
@@ -49,27 +50,32 @@ class MCPClient:
         result = await self.session.list_tools()
         return result.tools
 
+
     async def call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Any:
-        """
-        Executes a tool and returns FULL response (not just content).
-        """
         if not self.session:
             raise RuntimeError("MCP Client not connected.")
 
         try:
             logger.debug(f"Calling tool: {tool_name} with args: {arguments}")
-
+            
+            # This returns a CallToolResult object
             result = await self.session.call_tool(tool_name, arguments)
 
-            # 🔍 Deep debug (this is gold when things break)
-            logger.debug(f"MCP RAW RESULT: {result}")
-            logger.debug(f"MCP RESULT CONTENT: {getattr(result, 'content', None)}")
+            # Check if the tool reported an internal failure
+            if hasattr(result, "isError") and result.isError:
+                logger.error(f"MCP Tool '{tool_name}' reported an internal error: {result.content}")
+            
+            # Log the content type for your own sanity during the [TextContent] bug
+            content = getattr(result, 'content', [])
+            if content:
+                logger.debug(f"Content Type: {type(content)}")
 
-            return result  # ✅ CRITICAL FIX
+            return result
 
         except Exception as e:
-            logger.exception(f"Tool call failed: {tool_name} | Error: {e}")
+            logger.exception(f"Transport-level failure calling {tool_name}: {e}")
             raise
+
 
     async def disconnect(self):
         """Gracefully shut down connection."""

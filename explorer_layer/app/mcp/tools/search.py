@@ -1,7 +1,7 @@
-import asyncio
 import json
 import logging
 from typing import Dict, List, Any
+from urllib.parse import urljoin
 
 from crawl4ai import AsyncWebCrawler, CrawlerRunConfig, BrowserConfig, CacheMode
 from app.mcp.registry import mcp
@@ -9,13 +9,11 @@ from app.config.config_manager import settings
 
 logger = logging.getLogger(__name__)
 
-
 class LinkScout:
     def __init__(self):
+        # Maps the config values to the class
         self.categories = settings.search.document_categories
         self.max_links = settings.search.max_links_to_analyze
-
-        # Precision-matched User-Agent
         self.user_agent = (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
             "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -29,7 +27,7 @@ class LinkScout:
         for cat, keywords in self.categories.items():
             for kw in keywords:
                 if kw in combined:
-                    scores[cat] += 0.4
+                    scores[cat] += 0.4 
 
         return {cat: min(score, 1.0) for cat, score in scores.items()}
 
@@ -52,23 +50,15 @@ class LinkScout:
             )
 
             async with AsyncWebCrawler(config=browser_config) as crawler:
+                logger.info(f"LinkScout: Starting crawl for {base_url}")
                 result = await crawler.arun(url=base_url, config=config)
 
-                internal_links = (result.links or {}).get("internal", [])
-
-                logger.debug(f"Crawl Success: {result.success}")
-                logger.debug(f"Status Code: {result.status_code}")
-                logger.debug(f"HTML Length: {len(result.html) if result.html else 0}")
-                logger.debug(f"Internal Links Found: {len(internal_links)}")
-
-                # Soft block detection
                 if not result.success:
-                    logger.warning(f"Crawl failed for {base_url}")
+                    logger.warning(f"LinkScout: Crawl failed for {base_url}")
                     return {cat: [] for cat in self.categories.keys()}
 
-                if not internal_links:
-                    logger.warning(f"No internal links found (possible soft block): {base_url}")
-                    return {cat: [] for cat in self.categories.keys()}
+                internal_links = (result.links or {}).get("internal", [])
+                logger.debug(f"LinkScout: Found {len(internal_links)} internal links")
 
                 suite = {cat: [] for cat in self.categories.keys()}
 
@@ -83,29 +73,26 @@ class LinkScout:
                     best_cat = max(category_scores, key=category_scores.get)
 
                     if category_scores[best_cat] > 0.3:
-                        suite[best_cat].append(
-                            {
-                                "url": href,
-                                "anchor_text": text,
-                                "confidence": category_scores[best_cat],
-                            }
-                        )
+                        suite[best_cat].append({
+                            "url": urljoin(base_url, href), # CRITICAL: Absolute URLs
+                            "anchor_text": text,
+                            "confidence": category_scores[best_cat],
+                        })
 
-                # Deduplicate + sort
+                # Deduplicate and sort
                 for cat in suite:
                     unique_links = {l["url"]: l for l in suite[cat]}.values()
                     suite[cat] = sorted(
                         unique_links,
                         key=lambda x: x["confidence"],
-                        reverse=True,
+                        reverse=True
                     )[: self.max_links]
 
                 return suite
 
         except Exception as e:
-            logger.exception(f"LinkScout logic error: {str(e)}")
+            logger.exception(f"LinkScout Error: {str(e)}")
             return {cat: [] for cat in self.categories.keys()}
-
 
 @mcp.tool()
 async def discover_regulatory_links(url: str) -> str:
@@ -119,25 +106,21 @@ async def discover_regulatory_links(url: str) -> str:
         results = await scout.find_regulatory_suite(url)
 
         has_data = any(len(links) > 0 for links in results.values())
-        logger.debug(f"MCP Tool Final Check - Data Found: {has_data}")
-
+        
         payload = {
             "status": "success" if has_data else "no_links_found",
             "url": url,
             "categories": results,
         }
 
-        # 🔥 CRITICAL FIX: Always return string for MCP
+        # The JSON string that the Discovery Node will receive
         return json.dumps(payload)
 
     except Exception as e:
-        logger.exception(f"MCP tool error for {url}: {str(e)}")
-
-        error_payload = {
+        logger.exception(f"MCP Tool Exception for {url}: {str(e)}")
+        return json.dumps({
             "status": "error",
             "url": url,
             "message": str(e),
             "categories": {},
-        }
-
-        return json.dumps(error_payload)
+        })
