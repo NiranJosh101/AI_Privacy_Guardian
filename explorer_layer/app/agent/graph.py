@@ -6,19 +6,25 @@ from app.agent.node.classification import classification_node
 from app.agent.node.extraction import extraction_node
 from app.agent.node.aggregation import aggregation_node
 
-# Define the Routing Logic
 def should_continue(state: ExplorerState):
-    
+    # Pull both flags from the state
     is_blocked = state.get("is_blocked", False)
-    print(f"--- DEBUG: Routing Check | is_blocked: {is_blocked} ---")
+    status_code = state.get("status_code", 0)
+    
+    print(f"--- DEBUG: Routing Check | Status: {status_code} | is_blocked: {is_blocked} ---")
+
+    # If we got a 200, we ALWAYS try Discovery. 
+    # This ignores the "block_detected" keywords that were failing you before.
+    if status_code == 200:
+        print("--- DEBUG: Routing to DISCOVERY (Status 200 Override) ---")
+        return "continue"
     
     if is_blocked:
-        print("--- DEBUG: Routing to END ---")
+        print("--- DEBUG: Hard Block Detected. Routing to END ---")
         return "end"
     
-    print("--- DEBUG: Routing to DISCOVERY ---")
     return "continue"
-
+    
 # Build the Graph
 workflow = StateGraph(ExplorerState)
 
