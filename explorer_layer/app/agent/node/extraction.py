@@ -9,7 +9,7 @@ async def extraction_node(state: ExplorerState) -> Dict[str, Any]:
     regulatory_map = state.get("regulatory_map", {})
     urls_to_scrape = set()
 
-    # Extract URLs
+    # Extract URLs from the state
     for links in regulatory_map.values():
         for link_item in links:
             url = link_item["url"] if isinstance(link_item, dict) else link_item
@@ -31,43 +31,44 @@ async def extraction_node(state: ExplorerState) -> Dict[str, Any]:
                 {"url": url}
             )
 
+            # MCP tools return a list of content items (usually TextContent)
             content_list = getattr(response, "content", [])
 
-            if content_list and len(content_list) > 0:
-                #  FIX: get actual first item
-                first_item = content_list[0]
+            if not content_list:
+                print(f"❌ [EMPTY MCP RESPONSE] {url}")
+                return (url, f"Empty content returned for {url}")
 
-                print(f" [RAW MCP ITEM] {url}: {first_item}")
+            # Get the first item from the response
+            first_item = content_list
+            
+            # Extract the string content. 
+            # Because the tool now returns a Dict, the MCP SDK typically 
+            # puts the string representation of that dict in the .text field.
+            raw_output = first_item.text if hasattr(first_item, "text") else str(first_item)
 
-                # Extract text safely
-                if hasattr(first_item, "text"):
-                    raw_text = first_item.text
-                else:
-                    raw_text = str(first_item)
+            # --- SMART PARSING ---
+            # We try to treat the output as the structured Dict we sent.
+            try:
+                # If the SDK passed it as a stringified dict/json
+                parsed = json.loads(raw_output)
+                
+                if isinstance(parsed, dict) and parsed.get("status") == "success":
+                    content = parsed.get("content", "")
+                    print(f" [SUCCESS] {url} | length={len(content)}")
+                    return (url, content)
+                
+                elif isinstance(parsed, dict) and parsed.get("status") == "error":
+                    msg = parsed.get("message", "Unknown tool error")
+                    print(f" [TOOL ERROR] {url}: {msg}")
+                    return (url, f"Tool error: {msg}")
 
-                print(f" [RAW TEXT LENGTH] {url}: {len(raw_text)}")
+            except (json.JSONDecodeError, TypeError):
+                # If it's not JSON, it means the SDK/Tool returned the raw text 
+                # directly (this often happens in simplified MCP implementations).
+                print(f" [DIRECT TEXT] {url} received raw text (length={len(raw_output)})")
+                return (url, raw_output)
 
-                #  Parse JSON response from MCP tool
-                try:
-                    parsed = json.loads(raw_text)
-
-                    if parsed.get("status") == "success":
-                        content = parsed.get("content", "")
-                        print(f" [PARSED CONTENT] {url} | length={len(content)}")
-                        print(f" [PREVIEW] {content[:200]}")
-                        return (url, content)
-
-                    else:
-                        msg = parsed.get("message", "Unknown error")
-                        print(f" [TOOL ERROR] {url}: {msg}")
-                        return (url, f"Tool error: {msg}")
-
-                except json.JSONDecodeError:
-                    print(f"⚠️ [JSON PARSE FAILED] {url}, returning raw text")
-                    return (url, raw_text)
-
-            print(f"❌ [EMPTY MCP RESPONSE] {url}")
-            return (url, f"Empty content returned for {url}")
+            return (url, raw_output)
 
         except Exception as e:
             print(f" [SCRAPE TASK ERROR] {url}: {str(e)}")
@@ -78,13 +79,14 @@ async def extraction_node(state: ExplorerState) -> Dict[str, Any]:
 
         print(f"\n--- DEBUG: Extracting {len(urls_to_scrape)} URLs in parallel ---")
 
+        # Run all scraping tasks concurrently
         results = await asyncio.gather(*(scrape_task(u) for u in urls_to_scrape))
 
         print("\n [EXTRACTION RESULTS SUMMARY]")
         for url, text in results:
             print(f"--- {url} ---")
             print(f"Length: {len(text)}")
-            print(f"Preview: {text[:150]}\n")
+            print(f"Preview: {text[:100]}...\n")
 
         extracted_data = {url: text for url, text in results}
 

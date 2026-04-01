@@ -4,14 +4,16 @@ from app.agent.state import ExplorerState
 def aggregation_node(state: ExplorerState) -> Dict[str, Any]:
     """
     Stitches multiple documents into one structured report 
-    with clear source markers.
+    with clear source markers and prints the final result.
     """
     content_store = state.get("content_store", {})
     regulatory_map = state.get("regulatory_map", {})
     base_url = state.get("base_url", "Unknown Domain")
     
     if not content_store:
-        return {"final_report": "# Error\nNo content was successfully extracted."}
+        error_msg = "# Error\nNo content was successfully extracted."
+        print(f"\n--- AGGREGATION FAILED: {base_url} ---\n{error_msg}")
+        return {"final_report": error_msg}
 
     report_sections = [f"# Regulatory Suite for {base_url}\n"]
     report_sections.append("This document aggregates all discovered legal and privacy information.\n")
@@ -28,7 +30,6 @@ def aggregation_node(state: ExplorerState) -> Dict[str, Any]:
             
             if content:
                 report_sections.append(f"### Source: {url}")
-                # Optional: Add a small snippet or the full content
                 report_sections.append(content)
                 report_sections.append("\n---\n") 
             else:
@@ -36,9 +37,17 @@ def aggregation_node(state: ExplorerState) -> Dict[str, Any]:
 
     final_markdown = "\n".join(report_sections)
 
+    # --- ADDED PRINT FOR VISIBILITY ---
+    print("\n" + "="*50)
+    print(f" FINAL AGGREGATED REPORT FOR: {base_url}")
+    print(f" TOTAL CHARACTERS: {len(final_markdown)}")
+    print("="*50)
+    print(final_markdown)  # This prints the full Markdown to your console
+    print("="*50 + "\n")
+    
     print(f"--- AGGREGATION COMPLETE: Report generated for {base_url} ---")
     
     return {
         "final_report": final_markdown,
-        "is_blocked": False # Ensure we don't accidentally stop the graph here
+        "is_blocked": False 
     }
