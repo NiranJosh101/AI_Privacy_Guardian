@@ -23,7 +23,7 @@ class SiteValidator:
             "bot detection",
         ]
 
-        self.min_content_length = 800  # Increased slightly to ensure we have real data
+        self.min_content_length = 400  # Increased slightly to ensure we have real data
 
     def _detect_blocks(self, html: str, status_code: int) -> Dict[str, Any]:
         """
@@ -57,8 +57,9 @@ class SiteValidator:
 
         run_config = CrawlerRunConfig(
             cache_mode=CacheMode.BYPASS,
-            wait_until="networkidle",
-            magic=True, 
+            wait_until="domcontentloaded",
+            page_timeout=20000,
+            magic=False, 
         )
 
         try:

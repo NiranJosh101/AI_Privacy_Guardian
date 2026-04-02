@@ -42,9 +42,11 @@ class LinkScout:
 
             config = CrawlerRunConfig(
                 cache_mode=CacheMode.BYPASS,
-                wait_until="networkidle",
+                wait_until="domcontentloaded",
+                wait_for="footer, [class*='footer'], #footer",
+                js_code="window.scrollTo(0, document.body.scrollHeight);",
                 magic=True,
-                page_timeout=45000,
+                page_timeout=30000,
                 remove_overlay_elements=True,
                 scan_full_page=True,
             )
@@ -56,25 +58,32 @@ class LinkScout:
                 if not result.success:
                     logger.warning(f"LinkScout: Crawl failed for {base_url}")
                     return {cat: [] for cat in self.categories.keys()}
+                
+                all_found_links = []
+                
+                for link_group in result.links.values():
+                    if isinstance(link_group, list):
+                        all_found_links.extend(link_group)
 
-                internal_links = (result.links or {}).get("internal", [])
-                logger.debug(f"LinkScout: Found {len(internal_links)} internal links")
+                logger.debug(f"LinkScout: Analyzing {len(all_found_links)} total links")
 
                 suite = {cat: [] for cat in self.categories.keys()}
 
-                for link in internal_links:
+                for link in all_found_links:
                     href = link.get("href", "")
-                    text = link.get("text", "")
+                    text = link.get("text", "").strip()
 
                     if not href or href.startswith(("#", "javascript:")):
                         continue
 
                     category_scores = self._classify_link(text, href)
+                    # Get the category with the highest score
                     best_cat = max(category_scores, key=category_scores.get)
 
+                    # Only add if the score is above threshold
                     if category_scores[best_cat] > 0.3:
                         suite[best_cat].append({
-                            "url": urljoin(base_url, href), # CRITICAL: Absolute URLs
+                            "url": urljoin(base_url, href),
                             "anchor_text": text,
                             "confidence": category_scores[best_cat],
                         })
