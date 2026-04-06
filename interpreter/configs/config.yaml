@@ -1,0 +1,12 @@
+interpreter:
+  chunking:
+    chunk_size: 1000
+    chunk_overlap: 150
+    separators: ["\n\n", "\n", " ", ""]
+  embeddings:
+    model_name: "sentence-transformers/all-MiniLM-L6-v2" # Free, local, fast
+  vector_db:
+    index_name: "privacy-guardian"
+    environment: "gcp-starter" # Or your specific Pinecone region
+    metric: "cosine"
+    dimension: 384 # Dimension for all-MiniLM-L6-v2
