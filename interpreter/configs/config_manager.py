@@ -3,7 +3,7 @@ from pathlib import Path
 from .config_entities import InterpreterConfig, ChunkingConfig, EmbeddingConfig, VectorDBConfig
 
 class ConfigManager:
-    def __init__(self, config_path: str = "config/config.yaml"):
+    def __init__(self, config_path: str = "configs/config.yaml"):
         self.config_path = Path(config_path)
         self.config = self._read_yaml()
 

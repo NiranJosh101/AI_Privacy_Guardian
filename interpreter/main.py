@@ -18,4 +18,4 @@ async def health_check():
 
 if __name__ == "__main__":
     # In production, you'd use a gunicorn/uvicorn worker setup
-    uvicorn.run("main:app", host="0.0.0.0", port=8001, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8002, reload=True)
