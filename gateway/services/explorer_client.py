@@ -23,24 +23,33 @@ class ExplorerClient:
        
         print(f"✅ ExplorerClient Initialized with URL: {self.url}")
 
+
     async def discover_site_content(self, target_url: str) -> ExplorerResponse:
         async with httpx.AsyncClient() as client:
-           
             endpoint = f"{self.url.rstrip('/')}/explore"
             
             try:
-                print(f"📡 Requesting: {endpoint} | Target: {target_url}")
-                
+                # 1. Use a generous timeout for the scraper
                 response = await client.post(
                     endpoint,
                     json={"url": target_url},
-                    timeout=self.timeout
+                    timeout=120.0 # 2 minutes for deep scraping
                 )
-                response.raise_for_status()
-                return ExplorerResponse(**response.json())
                 
+                # 2. DEBUG: See exactly what the Explorer sent back
+                print(f"DEBUG: Explorer raw response: {response.text[:200]}...")
+                
+                response.raise_for_status()
+                
+                # 3. Return the raw dict first if you suspect Pydantic is crashing
+                data = response.json()
+                return ExplorerResponse(**data)
+                
+            except httpx.HTTPStatusError as e:
+                # This captures the 500s coming FROM the Explorer
+                print(f"Explorer logic failed: {e.response.text}")
+                raise HTTPException(status_code=500, detail="Explorer service encountered a logic error.")
             except Exception as e:
-                raise HTTPException(
-                    status_code=500, 
-                    detail=f"Explorer Error at {endpoint}: {str(e)}"
-                )
+                # This captures connection issues or Pydantic validation crashes
+                print(f"Gateway connection/validation error: {str(e)}")
+                raise HTTPException(status_code=500, detail=f"Failed to bridge to Explorer: {str(e)}")

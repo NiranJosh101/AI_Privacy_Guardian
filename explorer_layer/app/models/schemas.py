@@ -1,14 +1,13 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict
-from enum import Enum
+from typing import List, Optional
 
-
-# 1. Define Request/Response Schemas
 class ExploreRequest(BaseModel):
-    url: str
+    url: str = Field(..., example="https://example.com")
 
 class ExplorerResponse(BaseModel):
-    base_url: str
-    is_blocked: bool
-    final_report: str
-    error_log: List[str]
+    base_url: str = Field(..., description="The cleaned target URL")
+    is_blocked: bool = Field(default=False)
+    # Use Optional and a default empty string
+    final_report: Optional[str] = Field(default="") 
+    # Use a default factory for lists to avoid 'None' issues
+    error_log: List[str] = Field(default_factory=list)

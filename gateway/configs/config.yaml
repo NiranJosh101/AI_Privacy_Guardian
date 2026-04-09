@@ -13,7 +13,7 @@ services:
     timeout: 30.0 # High timeout for agentic search
   interpreter:
     url: ${INTERPRETER_SERVICE_URL:-"http://localhost:8002"}
-    timeout: 20.0
+    timeout: 90.0
   judge:
     url: ${JUDGE_SERVICE_URL:-"http://localhost:8003"}
     timeout: 5.0

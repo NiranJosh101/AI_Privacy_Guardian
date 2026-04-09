@@ -5,8 +5,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 class PolicyChunker:
-    def __init__(self,):
-        config = ConfigManager().get_interpreter_config().chunking
+    def __init__(self, config):
+        # config = ConfigManager().get_interpreter_config().chunking
         self.splitter = RecursiveCharacterTextSplitter(
             chunk_size=config.chunk_size,
             chunk_overlap=config.chunk_overlap,

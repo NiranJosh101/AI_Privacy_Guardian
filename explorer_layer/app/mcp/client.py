@@ -15,7 +15,7 @@ class MCPClient:
     Fixed: Properly returns full MCP response instead of just content.
     """
 
-    def __init__(self, url: str = "http://localhost:8002/sse"):
+    def __init__(self, url: str = "http://localhost:8008/sse"):
         self.url = url
         self.session: Optional[ClientSession] = None
         self._exit_stack = AsyncExitStack()

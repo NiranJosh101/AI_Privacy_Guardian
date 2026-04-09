@@ -9,7 +9,7 @@ from app.mcp.tools.validator import SiteValidator
 
 
 # 1. Initialize ONE MCP Server
-mcp = FastMCP("ExplorerTools", host="0.0.0.0", port=8002)
+mcp = FastMCP("ExplorerTools", host="0.0.0.0", port=8008)
 
 
 # 2. Register Scout Tool

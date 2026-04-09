@@ -1,10 +1,15 @@
 import os
+from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from engine.prompts.prompts import INTERPRETER_SYSTEM_PROMPT
 from models.domain import SiteProfile
 
+
+load_dotenv()
+
+
 class PolicySynthesizer:
-    def __init__(self, model_name: str = "llama3-70b-8192"):
+    def __init__(self, model_name: str = "llama-3.1-8b-instant"):
         # We use temperature 0 for extraction to ensure deterministic results
         self.llm = ChatGroq(
             temperature=0, 
