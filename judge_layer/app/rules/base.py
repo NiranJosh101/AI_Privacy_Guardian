@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Optional
-from ..models import SiteProfile, Violation
+from app.models.schema import SiteProfile, Violation
 
 class BaseRule(ABC):
     """

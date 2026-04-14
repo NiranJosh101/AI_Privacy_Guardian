@@ -1,3 +1,5 @@
+import datetime
+
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict
 from enum import Enum
@@ -42,6 +44,7 @@ class ScanVerdict(BaseModel):
     risk_score: int    # 0-100
     explanation: str
     violations: List[Violation] = []
+
 
 class ScanStatusResponse(BaseModel):
     jobId: str

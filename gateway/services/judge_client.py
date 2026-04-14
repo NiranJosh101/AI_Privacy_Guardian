@@ -1,50 +1,48 @@
-# services/judge_client.py
 import httpx
-from models.schemas import UserPersona, SiteProfile, ScanVerdict
+from models.schemas import SiteProfile, ScanVerdict, PrivacyConstraints
 from configs.config_manager import cfg
 from fastapi import HTTPException
 
 class JudgeClient:
     def __init__(self):
-        # 1. Get the raw URL from config
+        # Clean the URL from config to handle potential quotes/whitespace
         raw_url = cfg.services['judge'].url
-        
-        # 2. Sanitize: Remove quotes and whitespace
         clean_url = raw_url.strip().replace('"', '').replace("'", "")
-        
-        # 3. Force protocol if missing
+
         if not clean_url.startswith(('http://', 'https://')):
             clean_url = f"http://{clean_url}"
-            
+
         self.url = clean_url
         self.timeout = cfg.services['judge'].timeout
 
-    async def generate_verdict(self, persona: UserPersona, site_profile: SiteProfile) -> ScanVerdict:
-        """
-        Sends the user persona and site profile to the Judge Service 
-        for a deterministic rule-based comparison and risk scoring.
-        """
+    async def generate_verdict(
+        self,
+        constraints: PrivacyConstraints, # This is the 'persona' passed from scan.py
+        site_profile: SiteProfile
+    ) -> ScanVerdict:
+
+        # We wrap these in keys so the Service can use Body(embed=True)
         payload = {
-            "persona": persona.dict(),
-            "site_profile": site_profile.dict()
+            "constraints": constraints.dict(),
+            "site": site_profile.dict()
         }
 
         async with httpx.AsyncClient() as client:
             try:
                 response = await client.post(
-                    f"{self.url}/judge",
+                    f"{self.url}/v1/evaluate",
                     json=payload,
                     timeout=self.timeout
                 )
-                
+
                 response.raise_for_status()
                 
-                # Returns the final "FLAG" or "CLEAR" result for the Dashboard
+                # IMPORTANT: ScanVerdict must have identical fields to 
+                # the Service's EvaluationResult
                 return ScanVerdict(**response.json())
 
-            except httpx.RequestError as exc:
-                print(f"Connection to Judge Service failed: {exc}")
-                raise HTTPException(status_code=503, detail="Judge Service is offline")
-            except Exception as e:
-                print(f"Decision Error: {str(e)}")
-                raise HTTPException(status_code=500, detail="Failed to generate privacy verdict")
+            except httpx.HTTPStatusError as e:
+                # Captures 4xx or 5xx errors from the service
+                raise HTTPException(status_code=e.response.status_code, detail=f"Judge Service Error: {e.response.text}")
+            except httpx.RequestError:
+                raise HTTPException(status_code=503, detail="Judge Service is unreachable")

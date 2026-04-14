@@ -1,6 +1,6 @@
 from typing import Optional
-from .base import BaseRule
-from ..models import SiteProfile, Violation
+from app.rules.base import BaseRule
+from app.models.schema import SiteProfile, Violation
 
 class BooleanCollectionRule(BaseRule):
     """Checks flags inside the data_collection DICT."""
@@ -13,11 +13,11 @@ class BooleanCollectionRule(BaseRule):
         if not user_pref: return None
         
         if site.data_collection.get(self.site_data_key, False):
+            # FIXED: Using correct schema keys
             return Violation(
-                constraint_key=self.constraint_key,
+                type=self.constraint_key,
                 severity=self.severity,
-                message=self.message,
-                actual_value=True
+                description=self.message
             )
         return None
 
@@ -31,12 +31,12 @@ class SimpleAttributeRule(BaseRule):
     def evaluate(self, user_pref: bool, site: SiteProfile) -> Optional[Violation]:
         if not user_pref: return None
 
-        # getattr(object, "field_name") is the magic here
-        if getattr(site, self.attribute_name, False):
+        val = getattr(site, self.attribute_name, False)
+        if val:
+            # FIXED: Using correct schema keys
             return Violation(
-                constraint_key=self.constraint_key,
+                type=self.constraint_key,
                 severity=self.severity,
-                message=self.message,
-                actual_value=True
+                description=self.message + f" (Site value: {val})"   
             )
         return None

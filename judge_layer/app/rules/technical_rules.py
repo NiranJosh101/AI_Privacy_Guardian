@@ -1,6 +1,6 @@
 from typing import Optional, List
-from .base import BaseRule
-from ..models import SiteProfile, Violation
+from app.rules.base import BaseRule
+from app.models.schema import SiteProfile, Violation
 
 class EncryptionStrengthRule(BaseRule):
     """
@@ -27,10 +27,9 @@ class EncryptionStrengthRule(BaseRule):
         # If the site has no encryption or it's not in our 'Safe' list
         if actual == "None" or actual not in self.min_allowed_standards:
             return Violation(
-                constraint_key=self.constraint_key,
+                type=self.constraint_key,
                 severity=self.severity,
-                message=f"{self.message} (Detected: {actual})",
-                actual_value=actual
+                description=self.message + f" (Site uses: {actual})"
             )
         
         return None

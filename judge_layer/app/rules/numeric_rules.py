@@ -1,6 +1,6 @@
 from typing import Optional
-from .base import BaseRule
-from ..models import SiteProfile, Violation
+from app.rules.base import BaseRule
+from app.models.schema import SiteProfile, Violation
 
 class MaxThresholdRule(BaseRule):
     """
@@ -34,10 +34,9 @@ class MaxThresholdRule(BaseRule):
             actual_display = site_value if site_value is not None else "Indefinite"
             
             return Violation(
-                constraint_key=self.constraint_key,
+                type=self.constraint_key,
                 severity=self.severity,
-                message=f"{self.message} (Limit: {self.threshold} days, Actual: {actual_display})",
-                actual_value=site_value
+                description=self.message + f" (Site value: {actual_display})"
             )
 
         return None
