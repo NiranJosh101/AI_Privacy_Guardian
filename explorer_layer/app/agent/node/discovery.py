@@ -2,6 +2,8 @@ import json
 import logging
 from typing import Dict, Any
 
+from langsmith import traceable
+
 from app.agent.state import ExplorerState
 from app.mcp.client import MCPClient
 
@@ -35,7 +37,7 @@ def extract_mcp_text_content(response) -> str:
 
     raise ValueError(f"No valid text payload found in MCP response: {content_items}")
 
-
+@traceable(name="Discovery Node", run_type="chain")
 async def discovery_node(state: ExplorerState) -> Dict[str, Any]:
     """
     Calls the MCP 'discover_regulatory_links' tool and unwraps the nested 

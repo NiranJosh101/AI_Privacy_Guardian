@@ -4,6 +4,7 @@ import logging
 from typing import Dict, Any
 from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, HumanMessage
+from langsmith import traceable
 from app.agent.state import ExplorerState
 from dotenv import load_dotenv
 
@@ -19,6 +20,8 @@ llm = ChatGroq(
     api_key=os.getenv("GROQ_API_KEY")
 )
 
+
+@traceable(name="Classification Node", run_type="chain")
 async def classification_node(state: ExplorerState) -> Dict[str, Any]:
     """
     Refines the regulatory_map by selecting the most authoritative links using Groq.

@@ -1,10 +1,11 @@
 import asyncio
 import json
 from typing import Dict, Any
+from langsmith import traceable
 from app.agent.state import ExplorerState
 from app.mcp.client import MCPClient
 
-
+@traceable(name="Extraction Node", run_type="chain")
 async def extraction_node(state: ExplorerState) -> Dict[str, Any]:
     regulatory_map = state.get("regulatory_map", {})
     urls_to_scrape = set()

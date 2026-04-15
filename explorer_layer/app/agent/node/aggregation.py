@@ -1,6 +1,9 @@
 from typing import Dict, Any
+from langsmith import traceable
 from app.agent.state import ExplorerState
 
+
+@traceable(name="Aggregation Node", run_type="chain")
 def aggregation_node(state: ExplorerState) -> Dict[str, Any]:
     """
     Stitches multiple documents into one structured report 
