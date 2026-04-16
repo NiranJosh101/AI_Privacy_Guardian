@@ -3,8 +3,8 @@ import operator
 
 class ExplorerState(TypedDict):
     base_url: str
-    regulatory_map: Dict[str, List[Dict[str, any]]] 
+    regulatory_map: Annotated[Dict[str, List[Dict]], operator.ior]
     content_store: Annotated[Dict[str, str], operator.ior] 
     is_blocked: bool
-    error_log: List[str]
+    error_log: Annotated[List[str], operator.add]
     final_report: Optional[str]
