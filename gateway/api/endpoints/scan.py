@@ -4,15 +4,18 @@ from models.schemas import ScanRequest, ScanStatusResponse, ScanStage
 from services.explorer_client import ExplorerClient
 from services.interpreter_client import InterpreterClient
 from services.judge_client import JudgeClient
+from services.cache_client import CacheClient
 from utils.db import db  # Direct DB lookup for Persona
 import uuid
 
 router = APIRouter()
 
+
 # Clients Instance
 explorer = ExplorerClient()
 interpreter = InterpreterClient()
 judge = JudgeClient()
+cache = CacheClient()
 
 # In-memory job store (Use Redis for K8s deployments)
 jobs = {}
@@ -49,37 +52,62 @@ def sanitize_url(url: str) -> str:
 
 async def run_orchestration_chain(job_id: str, user_id: str, url: str):
     try:
-        # Sanitize before doing anything else
         clean_url = sanitize_url(url)
-        print(f"DEBUG: Original URL: {url} -> Cleaned URL: {clean_url}") 
-        
-        # 1. Identity Check (Local DB)
+
+        # 1. Persona (always needed)
         persona = await db.get_persona_by_id(user_id)
         if not persona:
-            # If no persona, we can't judge. Mark as IDLE or FAILED
-            jobs[job_id]["status"] = ScanStage.IDLE 
+            jobs[job_id]["status"] = ScanStage.IDLE
             return
 
-        # 2. Explorer (Discovery) 
-        # FIX: PASS clean_url HERE INSTEAD OF url
+        # 2. 🔥 CACHE CHECK (FIRST DECISION POINT)
+        site_profile = await cache.get(clean_url)
+
+        # -------------------------
+        # CACHE HIT PATH
+        # -------------------------
+        if site_profile:
+            print("CACHE HIT 🚀")
+
+            jobs[job_id]["status"] = ScanStage.JUDGING
+
+            final_verdict = await judge.generate_verdict(
+                persona,
+                site_profile
+            )
+
+            jobs[job_id]["result"] = final_verdict
+            jobs[job_id]["status"] = ScanStage.COMPLETE
+            return
+
+        # -------------------------
+        # CACHE MISS PATH
+        # -------------------------
+
         jobs[job_id]["status"] = ScanStage.DISCOVERY
+
         explorer_data = await explorer.discover_site_content(clean_url)
 
-        # 3. Interpreter (Reasoning)
         jobs[job_id]["status"] = ScanStage.REASONING
+
         site_profile = await interpreter.extract_site_profile(explorer_data)
 
-        # 4. Judge (Judging)
-        jobs[job_id]["status"] = ScanStage.JUDGING
-        final_verdict = await judge.generate_verdict(persona, site_profile)
+        # store new knowledge
+        await cache.set(clean_url, site_profile)
 
-        # 5. Complete
+        # judge always runs
+        jobs[job_id]["status"] = ScanStage.JUDGING
+
+        final_verdict = await judge.generate_verdict(
+            persona,
+            site_profile
+        )
+
         jobs[job_id]["result"] = final_verdict
         jobs[job_id]["status"] = ScanStage.COMPLETE
 
     except Exception as e:
         print(f"Pipeline Error for job {job_id}: {str(e)}")
-        # If your enum supports it, use ScanStage.FAILED
         jobs[job_id]["status"] = ScanStage.IDLE
 
 @router.get("/status/{job_id}", response_model=ScanStatusResponse)

@@ -17,6 +17,9 @@ services:
   judge:
     url: ${JUDGE_SERVICE_URL:-"http://localhost:8006"}
     timeout: 5.0
+  cache:
+    url: ${CACHE_SERVICE_URL:-"http://localhost:8007"}
+    timeout: 5.0
 
 redis:
   host: ${REDIS_HOST:-"localhost"}
