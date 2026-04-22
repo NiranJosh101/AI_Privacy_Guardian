@@ -1,12 +1,15 @@
 import uvicorn
 from fastapi import FastAPI
 from api.routes import router as interpreter_router
+from telemetry import init_telemetry
 
 app = FastAPI(
     title="Privacy Guardian: Semantic Interpreter",
     description="RAG-based privacy policy analysis service",
     version="1.0.0"
 )
+
+init_telemetry(app, "privacy-guardian-interpreter")
 
 # Include our modular routes
 app.include_router(interpreter_router, prefix="/api/v1")

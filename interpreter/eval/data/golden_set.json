@@ -1,0 +1,173 @@
+[
+    {
+        "url": "https://openai.com/policies/privacy-policy",
+        "industry": "AI/Tech",
+        "expected_output": {
+            "retention_period": "Only as long as necessary for the purposes described in the policy.",
+            "third_party_sharing": true,
+            "pii_collected": [
+                "IP address",
+                "Usage data",
+                "Contact information"
+            ],
+            "user_deletion_rights": true
+        },
+        "gold_context": [
+            "We retain your Personal Information for only as long as we need it to provide our Service..."
+        ]
+    },
+    {
+        "url": "https://www.google.com/policies/privacy/",
+        "industry": "Big Tech",
+        "expected_output": {
+            "retention_period": "Variable depending on the data type and user settings.",
+            "third_party_sharing": true,
+            "pii_collected": [
+                "Location",
+                "Search terms",
+                "Voice/Audio",
+                "Device IDs"
+            ],
+            "user_deletion_rights": true
+        },
+        "gold_context": [
+            "Some data you can delete whenever you like, such as the content you create or upload."
+        ]
+    },
+    {
+        "url": "https://www.chase.com/digital/resources/privacy-security/questions",
+        "industry": "Banking/Finance",
+        "expected_output": {
+            "retention_period": "Subject to regulatory record-keeping requirements (often 7+ years).",
+            "third_party_sharing": true,
+            "pii_collected": [
+                "SSN",
+                "Transaction history",
+                "Credit scores"
+            ],
+            "user_deletion_rights": false
+        },
+        "gold_context": [
+            "Federal law gives you the right to limit some but not all sharing."
+        ]
+    },
+    {
+        "url": "https://www.shopify.com/legal/privacy",
+        "industry": "E-commerce SaaS",
+        "expected_output": {
+            "retention_period": "Duration of the business relationship plus legal requirement periods.",
+            "third_party_sharing": true,
+            "pii_collected": [
+                "Email",
+                "Payment info",
+                "Business address"
+            ],
+            "user_deletion_rights": true
+        },
+        "gold_context": [
+            "We generally keep your information as long as you have an account with us."
+        ]
+    },
+    {
+        "url": "https://www.redditinc.com/policies/privacy-policy",
+        "industry": "Social Media",
+        "expected_output": {
+            "retention_period": "Until account deletion, except for logs stored for 100 days.",
+            "third_party_sharing": true,
+            "pii_collected": [
+                "IP",
+                "User interactions",
+                "Browsing history"
+            ],
+            "user_deletion_rights": true
+        },
+        "gold_context": [
+            "We store log data for 100 days after which we remove IP addresses."
+        ]
+    },
+    {
+        "url": "https://www.healthcare.gov/privacy/",
+        "industry": "Government/Health",
+        "expected_output": {
+            "retention_period": "Defined by federal records schedules.",
+            "third_party_sharing": false,
+            "pii_collected": [
+                "Health status",
+                "Income",
+                "Tax info"
+            ],
+            "user_deletion_rights": true
+        },
+        "gold_context": [
+            "We maintain information only as long as it is necessary for the performance of our duties."
+        ]
+    },
+    {
+        "url": "https://www.nike.com/help/a/privacy-policy",
+        "industry": "Retail",
+        "expected_output": {
+            "retention_period": "As long as the account is active or for marketing purposes.",
+            "third_party_sharing": true,
+            "pii_collected": [
+                "Shoe size",
+                "Fitness activity",
+                "Physical address"
+            ],
+            "user_deletion_rights": true
+        },
+        "gold_context": [
+            "We keep your personal information for as long as we have a relationship with you."
+        ]
+    },
+    {
+        "url": "https://www.strava.com/legal/privacy",
+        "industry": "Fitness/IoT",
+        "expected_output": {
+            "retention_period": "Until account is deleted or data is made private.",
+            "third_party_sharing": false,
+            "pii_collected": [
+                "GPS coordinates",
+                "Heart rate",
+                "Health data"
+            ],
+            "user_deletion_rights": true
+        },
+        "gold_context": [
+            "Strava retains information as long as it is necessary to provide the services."
+        ]
+    },
+    {
+        "url": "https://www.roblox.com/info/privacy",
+        "industry": "Gaming/COPPA",
+        "expected_output": {
+            "retention_period": "Until account deletion or as required for child safety.",
+            "third_party_sharing": false,
+            "pii_collected": [
+                "Username",
+                "Age",
+                "Chat logs"
+            ],
+            "user_deletion_rights": true
+        },
+        "gold_context": [
+            "We only collect the information that is reasonably necessary to participate in the activity."
+        ]
+    },
+    {
+        "url": "https://www.mcdonalds.com/us/en-us/privacy-policy.html",
+        "industry": "Food & Beverage",
+        "expected_output": {
+            "retention_period": "Varies by local law and marketing needs.",
+            "third_party_sharing": true,
+            "pii_collected": [
+                "Mobile location",
+                "Purchase history",
+                "Loyalty ID"
+            ],
+            "user_deletion_rights": true
+        },
+        "gold_context": [
+            "We keep personal information for the period of time necessary to fulfill the purposes."
+        ]
+    }
+]

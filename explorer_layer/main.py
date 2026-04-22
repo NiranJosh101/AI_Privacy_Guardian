@@ -3,6 +3,8 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, HttpUrl
 from app.agent.graph import explorer_agent
 from app.models.schemas import ExploreRequest, ExplorerResponse
+from telemetry import init_telemetry
+
 
 app = FastAPI(
     title="Explorer Service",
@@ -10,6 +12,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
+init_telemetry(app, "privacy-guardian-explorer")
 
 @app.post("/explore", response_model=ExplorerResponse)
 async def run_exploration(request: ExploreRequest):
@@ -57,4 +60,4 @@ if __name__ == "__main__":
     if sys.platform == 'win32':
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    uvicorn.run(app, host="0.0.0.0", port=8004)

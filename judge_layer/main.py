@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from app.api.routes import router as evaluation_router
+from telemetry import init_telemetry
+
 
 app = FastAPI(
     title="Privacy Guardian - Judge Service",
@@ -7,7 +9,11 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Register the routes
+
+init_telemetry(app, "privacy-guardian-judge")
+
+
+
 app.include_router(evaluation_router)
 
 @app.get("/health")
@@ -16,4 +22,4 @@ def health():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8003, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8009, reload=True)

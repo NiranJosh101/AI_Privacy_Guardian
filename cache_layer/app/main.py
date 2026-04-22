@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-
+from telemetry import init_telemetry
 from api.routes import router
 
 
@@ -8,6 +8,8 @@ app = FastAPI(
     description="Redis-backed caching layer for SiteProfile storage and retrieval",
     version="1.0.0"
 )
+
+init_telemetry(app, "privacy-guardian-cache")
 
 # Register routes
 app.include_router(router, prefix="/cache")

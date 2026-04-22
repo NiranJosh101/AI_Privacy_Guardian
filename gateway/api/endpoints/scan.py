@@ -1,15 +1,15 @@
 # api/endpoints/scan.py
-from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Request  # Added Request
 from models.schemas import ScanRequest, ScanStatusResponse, ScanStage
 from services.explorer_client import ExplorerClient
 from services.interpreter_client import InterpreterClient
 from services.judge_client import JudgeClient
 from services.cache_client import CacheClient
-from utils.db import db  # Direct DB lookup for Persona
+from utils.db import db 
+from security import limiter  # Import your lean security strategy
 import uuid
 
 router = APIRouter()
-
 
 # Clients Instance
 explorer = ExplorerClient()
@@ -17,11 +17,16 @@ interpreter = InterpreterClient()
 judge = JudgeClient()
 cache = CacheClient()
 
-# In-memory job store (Use Redis for K8s deployments)
+# In-memory job store
 jobs = {}
 
 @router.post("/scan", response_model=ScanStatusResponse)
-async def start_scan(request: ScanRequest, background_tasks: BackgroundTasks):
+@limiter.limit("5/minute")  # The "Bouncer": 5 scans per minute per IP
+async def start_scan(request: ScanRequest, http_request: Request, background_tasks: BackgroundTasks):
+    """
+    Note: 'http_request' is required by the @limiter decorator 
+    to extract the client's IP address for rate limiting.
+    """
     job_id = str(uuid.uuid4())
     
     # Initialize the job state
@@ -45,7 +50,6 @@ async def start_scan(request: ScanRequest, background_tasks: BackgroundTasks):
 def sanitize_url(url: str) -> str:
     """Ensures the URL has a protocol prefix."""
     if not url.startswith(('http://', 'https://')):
-        # You can default to https or check if it's localhost
         return f"http://{url}"
     return url
 
@@ -60,22 +64,13 @@ async def run_orchestration_chain(job_id: str, user_id: str, url: str):
             jobs[job_id]["status"] = ScanStage.IDLE
             return
 
-        # 2. 🔥 CACHE CHECK (FIRST DECISION POINT)
+        # 2. 🔥 CACHE CHECK
         site_profile = await cache.get(clean_url)
 
-        # -------------------------
-        # CACHE HIT PATH
-        # -------------------------
         if site_profile:
             print("CACHE HIT 🚀")
-
             jobs[job_id]["status"] = ScanStage.JUDGING
-
-            final_verdict = await judge.generate_verdict(
-                persona,
-                site_profile
-            )
-
+            final_verdict = await judge.generate_verdict(persona, site_profile)
             jobs[job_id]["result"] = final_verdict
             jobs[job_id]["status"] = ScanStage.COMPLETE
             return
@@ -83,13 +78,10 @@ async def run_orchestration_chain(job_id: str, user_id: str, url: str):
         # -------------------------
         # CACHE MISS PATH
         # -------------------------
-
         jobs[job_id]["status"] = ScanStage.DISCOVERY
-
         explorer_data = await explorer.discover_site_content(clean_url)
 
         jobs[job_id]["status"] = ScanStage.REASONING
-
         site_profile = await interpreter.extract_site_profile(explorer_data)
 
         # store new knowledge
@@ -97,11 +89,7 @@ async def run_orchestration_chain(job_id: str, user_id: str, url: str):
 
         # judge always runs
         jobs[job_id]["status"] = ScanStage.JUDGING
-
-        final_verdict = await judge.generate_verdict(
-            persona,
-            site_profile
-        )
+        final_verdict = await judge.generate_verdict(persona, site_profile)
 
         jobs[job_id]["result"] = final_verdict
         jobs[job_id]["status"] = ScanStage.COMPLETE

@@ -2,6 +2,7 @@ import httpx
 from typing import Optional, Dict, Any
 from configs.config_manager import cfg
 from fastapi import HTTPException
+from models.schemas import SiteProfile
 
 class CacheClient:
     def __init__(self):
@@ -24,14 +25,10 @@ class CacheClient:
         )
         print(f"✅ CacheClient Initialized with URL: {self.base_url}")
 
-    async def get(self, domain: str) -> Optional[Dict[str, Any]]:
+    async def get(self, domain: str) -> Optional[SiteProfile]: # 👈 Updated Type Hint
         endpoint = "/cache/site-profile"
         try:
-            # Using the persistent client to avoid socket exhaustion
             response = await self.client.get(endpoint, params={"domain": domain})
-            
-            # Debugging like ExplorerClient
-            # print(f"DEBUG: Cache raw response: {response.text[:200]}...")
             
             if response.status_code == 404:
                 return None
@@ -39,15 +36,20 @@ class CacheClient:
             response.raise_for_status()
             data = response.json()
             
-            return data.get("site_profile") if data.get("found") else None
+            # 1. Extract the dict
+            profile_dict = data.get("site_profile")
             
-        except httpx.HTTPStatusError as e:
-            print(f"Cache logic failed: {e.response.text}")
+            # 2. Only attempt to instantiate if we actually have data
+            if data.get("found") and profile_dict:
+                return SiteProfile(**profile_dict) # 🚀 Returns a model, logic is happy
+                
             return None
+            
         except Exception as e:
             print(f"Gateway connection/validation error (Cache GET): {str(e)}")
             return None
-
+        
+        
     async def set(self, domain: str, site_profile: Any) -> bool:
         try:
             # 1. Safely convert to dict only if it's a Pydantic model
