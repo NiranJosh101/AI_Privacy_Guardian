@@ -1,0 +1,109 @@
+version: '3.8'
+
+services:
+  # --- INFRASTRUCTURE ---
+  redis:
+    image: redis:alpine
+    container_name: pg-redis
+    networks:
+      - privacy-network
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: pg-jaeger
+    networks:
+      - privacy-network
+    ports:
+      - "16686:16686" # Jaeger UI
+      - "4317:4317"   # OTLP gRPC
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+
+  # --- CUSTOM SERVICES ---
+  cache-service:
+    build: ./cache_layer
+    container_name: pg-cache
+    networks:
+      - privacy-network
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    healthcheck:
+      test: ["CMD", "python", "-c", "import asyncio; from main import cache; asyncio.run(cache.ping())"]
+      interval: 10s
+      retries: 3
+
+  explorer:
+    build: ./explorer_layer
+    container_name: pg-explorer
+    networks:
+      - privacy-network
+    depends_on:
+      cache-service:
+        condition: service_healthy
+    environment:
+      - CACHE_HOST=cache-service
+
+  interpreter:
+    build: ./interpreter_layer
+    container_name: pg-interpreter
+    networks:
+      - privacy-network
+    depends_on:
+      cache-service:
+        condition: service_healthy
+    environment:
+      - CACHE_HOST=cache-service
+      - GROQ_API_KEY=${GROQ_API_KEY}
+
+  judge:
+    build: ./judge_layer
+    container_name: pg-judge
+    networks:
+      - privacy-network
+    depends_on:
+      cache-service:
+        condition: service_healthy
+    environment:
+      - CACHE_HOST=cache-service
+
+  # --- THE CONDUCTOR ---
+  gateway:
+    build: ./gateway
+    container_name: pg-gateway
+    networks:
+      - privacy-network
+    ports:
+      - "8080:8000" # Public Entry Point
+    depends_on:
+      explorer:
+        condition: service_started
+      interpreter:
+        condition: service_started
+      judge:
+        condition: service_started
+      cache-service:
+        condition: service_healthy
+    environment:
+      - EXPLORER_URL=http://explorer:8000
+      - INTERPRETER_URL=http://interpreter:8000
+      - JUDGE_URL=http://judge:8000
+      - CACHE_URL=http://cache-service:8000
+      - JAEGER_AGENT_HOST=jaeger
+
+networks:
+  privacy-network:
+    driver: bridge
+
+volumes:
+  redis_data:
