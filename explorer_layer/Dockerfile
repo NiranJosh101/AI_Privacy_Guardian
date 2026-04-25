@@ -7,6 +7,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
+
 # --- Stage 2: Final (The "Explorer" Image) ---
 FROM mcr.microsoft.com/playwright/python:v1.42.0-jammy
 
