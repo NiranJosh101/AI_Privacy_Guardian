@@ -5,4 +5,3 @@ httpx==0.28.1
 uuid_utils==0.14.1
 opentelemetry-api==1.41.0
 opentelemetry-instrumentation-fastapi==0.62b0
-abc

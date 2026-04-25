@@ -1,19 +1,21 @@
 fastapi==0.135.1
 uvicorn==0.42.0
-pinecone==2.2.2
-deepeval
-ragas
-pytest
 pydantic
+pytest
+# AI & Vector DB
 pinecone-client
 langchain-pinecone
 langchain-huggingface
-langchain_text_splitters
+langchain-text-splitters==1.1.1
+# LLM Logic
 langchain-core==1.2.26
 langchain-groq==1.1.2
 groq==0.37.1
 tiktoken==0.12.0
-langchain-text-splitters==1.1.1
+# Metrics & Eval
+deepeval
+ragas
 sentence-transformers==5.3.0
+# Observability
 opentelemetry-api==1.41.0
 opentelemetry-instrumentation-fastapi==0.62b0

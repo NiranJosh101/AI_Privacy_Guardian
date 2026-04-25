@@ -9,12 +9,7 @@ fake-useragent==2.2.0
 aiohttp==3.13.3
 opentelemetry-api==1.41.0
 opentelemetry-instrumentation-fastapi==0.62b0
-operator
-langraph
+langgraph
 langsmith
-asyncio
-json
-urllib
-contextlib
-langchain_groq
-langchain_core
+langchain-groq
+langchain-core
