@@ -1,0 +1,60 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Recommended: Official Docker Login Action
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # -----------------------------
+      # GATEWAY
+      # -----------------------------
+      - name: Build and Push Gateway
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/gateway:latest ./gateway
+          docker push ${{ secrets.DOCKER_USERNAME }}/gateway:latest
+
+      # -----------------------------
+      # EXPLORER
+      # -----------------------------
+      - name: Build and Push Explorer
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/explorer:latest ./explorer_layer
+          docker push ${{ secrets.DOCKER_USERNAME }}/explorer:latest
+
+      # -----------------------------
+      # INTERPRETER
+      # -----------------------------
+      - name: Build and Push Interpreter
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/interpreter:latest ./interpreter
+          docker push ${{ secrets.DOCKER_USERNAME }}/interpreter:latest
+
+      # -----------------------------
+      # JUDGE
+      # -----------------------------
+      - name: Build and Push Judge
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/judge:latest ./judge_layer
+          docker push ${{ secrets.DOCKER_USERNAME }}/judge:latest
+
+      # -----------------------------
+      # CACHE
+      # -----------------------------
+      - name: Build and Push Cache
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/cache:latest ./cache_layer
+          docker push ${{ secrets.DOCKER_USERNAME }}/cache:latest
