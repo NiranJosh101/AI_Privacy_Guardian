@@ -7,6 +7,7 @@ class ConfigManager:
         self.config_path = Path(config_path)
         self.config = self._read_yaml()
 
+
     def _read_yaml(self) -> dict:
         with open(self.config_path, "r") as f:
             return yaml.safe_load(f)
