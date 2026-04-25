@@ -3,6 +3,12 @@ name: Backend CI
 on:
   push:
     branches: [main]
+    paths:
+      - 'gateway/**'
+      - 'explorer_layer/**'
+      - 'interpreter/**'
+      - 'judge_layer/**'
+      - 'cache_layer/**'
 
 jobs:
   backend:
