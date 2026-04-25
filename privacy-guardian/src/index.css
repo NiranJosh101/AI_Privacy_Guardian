@@ -1,0 +1,192 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    --background: 220 20% 7%;
+    --foreground: 210 20% 92%;
+
+    --card: 220 18% 10%;
+    --card-foreground: 210 20% 92%;
+
+    --popover: 220 18% 10%;
+    --popover-foreground: 210 20% 92%;
+
+    --primary: 168 80% 50%;
+    --primary-foreground: 220 20% 7%;
+
+    --secondary: 220 16% 16%;
+    --secondary-foreground: 210 20% 85%;
+
+    --muted: 220 14% 14%;
+    --muted-foreground: 215 12% 50%;
+
+    --accent: 220 16% 18%;
+    --accent-foreground: 210 20% 92%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --warning: 32 95% 55%;
+    --warning-foreground: 32 95% 12%;
+
+    --success: 145 65% 42%;
+    --success-foreground: 145 65% 95%;
+
+    --cyber-glow: 168 80% 50%;
+    --cyber-dim: 168 40% 25%;
+    --scan-blue: 210 90% 55%;
+
+    --border: 220 14% 18%;
+    --input: 220 14% 18%;
+    --ring: 168 80% 50%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 220 18% 10%;
+    --sidebar-foreground: 210 20% 85%;
+    --sidebar-primary: 168 80% 50%;
+    --sidebar-primary-foreground: 220 20% 7%;
+    --sidebar-accent: 220 16% 16%;
+    --sidebar-accent-foreground: 210 20% 92%;
+    --sidebar-border: 220 14% 18%;
+    --sidebar-ring: 168 80% 50%;
+
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+}
+
+/* ... existing @layer base and :root variables ... */
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-display);
+
+    /* ADD THESE THREE LINES */
+    width: 400px;
+    height: 600px;
+    overflow-x: hidden;
+  }
+
+  /* Ensure the root React container fills the body */
+  #root {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+/* ... existing @layer utilities ... */
+/* ... existing @layer base and :root variables ... */
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-display);
+
+    /* ADD THESE THREE LINES */
+    width: 500px;
+    height: 600px;
+    overflow-x: hidden;
+  }
+
+  /* Ensure the root React container fills the body */
+  #root {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+/* ... existing @layer utilities ... */
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  .font-mono {
+    font-family: var(--font-mono);
+  }
+
+  .glow-primary {
+    box-shadow: 0 0 20px hsl(var(--cyber-glow) / 0.25), 0 0 60px hsl(var(--cyber-glow) / 0.1);
+  }
+
+  .glow-text {
+    text-shadow: 0 0 12px hsl(var(--cyber-glow) / 0.6);
+  }
+
+  .glow-destructive {
+    box-shadow: 0 0 20px hsl(var(--destructive) / 0.3), 0 0 60px hsl(var(--destructive) / 0.1);
+  }
+
+  .glow-warning {
+    box-shadow: 0 0 20px hsl(var(--warning) / 0.3);
+  }
+
+  .gradient-cyber {
+    background: linear-gradient(135deg, hsl(var(--cyber-glow)), hsl(var(--scan-blue)));
+  }
+
+  .gradient-dark {
+    background: linear-gradient(180deg, hsl(var(--background)), hsl(220 20% 5%));
+  }
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes scan-line {
+  0% {
+    transform: translateY(-100%);
+  }
+
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-scan-line {
+  animation: scan-line 3s linear infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
