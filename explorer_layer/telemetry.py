@@ -12,11 +12,12 @@ def init_telemetry(app, service_name):
     
     # Check the environment variable before setting up the exporter
     if os.getenv("OTEL_TRACES_EXPORTER") != "none":
+        # fixed the deployment issue by adding the exporter setup inside the condition
         exporter = OTLPSpanExporter(endpoint="http://jaeger:4317", insecure=True)
         processor = BatchSpanProcessor(exporter)
         provider.add_span_processor(processor)
     
 
-    
+
     trace.set_tracer_provider(provider)
     FastAPIInstrumentor.instrument_app(app)
