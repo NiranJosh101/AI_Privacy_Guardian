@@ -16,5 +16,7 @@ def init_telemetry(app, service_name):
         processor = BatchSpanProcessor(exporter)
         provider.add_span_processor(processor)
     
+
+    
     trace.set_tracer_provider(provider)
     FastAPIInstrumentor.instrument_app(app)
