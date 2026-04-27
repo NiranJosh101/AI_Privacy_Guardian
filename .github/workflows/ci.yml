@@ -52,15 +52,15 @@ jobs:
       # -----------------------------
       # JUDGE
       # -----------------------------
-      - name: Build and Push Judge
-        run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/judge:latest ./judge_layer
-          docker push ${{ secrets.DOCKER_USERNAME }}/judge:latest
+      # - name: Build and Push Judge
+      #   run: |
+      #     docker build -t ${{ secrets.DOCKER_USERNAME }}/judge:latest ./judge_layer
+      #     docker push ${{ secrets.DOCKER_USERNAME }}/judge:latest
 
       # -----------------------------
       # CACHE
       # -----------------------------
-      # - name: Build and Push Cache
-      #   run: |
-      #     docker build -t ${{ secrets.DOCKER_USERNAME }}/cache:latest ./cache_layer
-      #     docker push ${{ secrets.DOCKER_USERNAME }}/cache:latest
+      - name: Build and Push Cache
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/cache:latest ./cache_layer
+          docker push ${{ secrets.DOCKER_USERNAME }}/cache:latest

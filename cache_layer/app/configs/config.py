@@ -4,9 +4,7 @@ from functools import lru_cache
 
 class Settings(BaseSettings):
     # Redis Configuration
-    REDIS_HOST: str = "localhost"
-    REDIS_PORT: int = 6379
-    REDIS_DB: int = 0
+    REDIS_URL: str = "redis://localhost:6379"
 
     # Cache TTL (in seconds)
     CACHE_TTL: int = 60 * 60 * 24  # 24 hours

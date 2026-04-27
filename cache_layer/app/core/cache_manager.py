@@ -2,7 +2,7 @@ import json
 import redis.asyncio as redis
 from typing import Optional, Dict, Any
 
-# Pydantic V2 Fix: Move import to the correct utility path
+# Pydantic V2 Fix: Use the modern encoder utility if needed
 from pydantic.json import pydantic_encoder 
 
 from configs.config import settings
@@ -11,11 +11,10 @@ from utils.domain import normalize_domain
 
 class CacheManager:
     def __init__(self):
-        # Initializing the Async Connection Pool
-        self.client = redis.Redis(
-            host=settings.REDIS_HOST,
-            port=settings.REDIS_PORT,
-            db=settings.REDIS_DB,
+        # 1. Using from_url to accommodate the REDIS_URL setting
+        # decode_responses=True ensures we get strings back, not bytes
+        self.client = redis.Redis.from_url(
+            settings.REDIS_URL,
             decode_responses=True
         )
 
@@ -26,21 +25,20 @@ class CacheManager:
     async def get_site_profile(self, domain: str) -> Optional[Dict[str, Any]]:
         key = self._make_key(domain)
         try:
-            # Await the async redis call
             data = await self.client.get(key)
             if not data:
                 return None
 
             return json.loads(data)
         except Exception as e:
-            # Cache failure must be silent (non-blocking)
+            # Keep failures silent for telemetry/caching
             print(f"[CACHE ERROR - GET] {e}")
             return None
 
     async def set_site_profile(self, domain: str, site_profile: Dict[str, Any]) -> bool:
         key = self._make_key(domain)
         try:
-            # Use pydantic_encoder to handle complex objects correctly
+            # Handles Pydantic objects if they are passed within the dict
             serialized_data = json.dumps(
                 site_profile, 
                 default=pydantic_encoder
@@ -72,5 +70,5 @@ class CacheManager:
             return False
 
     async def close(self):
-        """Important for clean shutdowns in async apps"""
-        await self.client.aclose() # Use aclose() for redis.asyncio
+        """Important for clean shutdowns in FastAPI/Async apps"""
+        await self.client.aclose()
