@@ -17,24 +17,22 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 
-# --- Stage 2: Final (The Runner) ---
-FROM python:3.11-slim
 
+# --- Stage 2: Final ---
+FROM python:3.11-slim
 WORKDIR /app
 
 COPY --from=builder /install /usr/local
-
-# Copy everything (including the cache_layer folder)
 COPY . .
 
-# 1. Update permissions for the whole app
 RUN adduser --disabled-password --gecos "" appuser && chown -R appuser /app
 USER appuser
 
-# 2. CHANGE WORKING DIRECTORY to where main.py actually is
-WORKDIR /app/cache_layer
+# 1. Set the PYTHONPATH so your imports (api, configs, utils) work
+# This tells Python to look inside the SECOND 'app' folder for modules
+ENV PYTHONPATH=/app/app
 
 EXPOSE 8000
 
-# Now 'main.py' is in the current directory
-CMD ["python", "main.py"]
+# 2. Point to the actual location shown in your sidebar
+CMD ["python", "app/main.py"]
