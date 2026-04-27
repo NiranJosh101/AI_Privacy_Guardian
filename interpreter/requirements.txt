@@ -17,5 +17,6 @@ deepeval
 ragas
 sentence-transformers==5.3.0
 # Observability
+opentelemetry.sdk
 opentelemetry-api==1.41.0
 opentelemetry-instrumentation-fastapi==0.62b0
