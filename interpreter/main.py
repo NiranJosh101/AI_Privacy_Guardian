@@ -20,7 +20,16 @@ async def health_check():
     return {"status": "healthy", "service": "interpreter"}
 
 
-# define a root endpoint for quick testing
 if __name__ == "__main__":
-    # In production, you'd use a gunicorn/uvicorn worker setup
-    uvicorn.run("main:app", host="0.0.0.0", port=8002, reload=True)
+    import os
+    # Render provides the PORT environment variable. 
+    # We must bind to it, or the service will fail the health check.
+    port = int(os.environ.get("PORT", 8002)) 
+    
+    uvicorn.run(
+        "main:app", 
+        host="0.0.0.0", 
+        port=port, 
+        reload=False, 
+        workers=1
+    )
