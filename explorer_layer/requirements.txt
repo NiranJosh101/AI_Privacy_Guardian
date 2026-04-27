@@ -9,7 +9,7 @@ fake-useragent==2.2.0
 aiohttp==3.13.3
 opentelemetry-api==1.41.0
 opentelemetry.sdk
-opentelemetry-instrumentation-fastapi==0.62b0
+opentelemetry-exporter-otlp-proto-grpc
 langgraph
 langsmith
 langchain-groq

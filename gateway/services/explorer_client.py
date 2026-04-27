@@ -3,6 +3,10 @@ import re
 from models.schemas import ExplorerResponse
 from configs.config_manager import cfg
 from fastapi import HTTPException
+import os
+
+
+MOCK = os.getenv("MOCK_SERVICES", "false").lower() == "true"
 
 class ExplorerClient:
     def __init__(self):
@@ -21,35 +25,45 @@ class ExplorerClient:
             
         self.timeout = cfg.services['explorer'].timeout
        
-        print(f"✅ ExplorerClient Initialized with URL: {self.url}")
+        print(f"ExplorerClient Initialized with URL: {self.url}")
 
 
     async def discover_site_content(self, target_url: str) -> ExplorerResponse:
+    
+        # MOCK PATH (this is what we're adding)
+        if MOCK:
+            print("ExplorerClient running in MOCK mode")
+
+            mock_data = {
+                "base_url": target_url,
+                "is_blocked": True,
+                "final_report": "Testing complete",
+                "error_log": "Testing complete"
+            }
+
+            return ExplorerResponse(**mock_data)
+
+        # REAL PATH (your existing code stays the same)
         async with httpx.AsyncClient() as client:
             endpoint = f"{self.url.rstrip('/')}/explore"
             
             try:
-                # 1. Use a generous timeout for the scraper
                 response = await client.post(
                     endpoint,
                     json={"url": target_url},
-                    timeout=120.0 # 2 minutes for deep scraping
+                    timeout=120.0
                 )
                 
-                # 2. DEBUG: See exactly what the Explorer sent back
                 print(f"DEBUG: Explorer raw response: {response.text[:200]}...")
                 
                 response.raise_for_status()
                 
-                # 3. Return the raw dict first if you suspect Pydantic is crashing
                 data = response.json()
                 return ExplorerResponse(**data)
                 
             except httpx.HTTPStatusError as e:
-                # This captures the 500s coming FROM the Explorer
                 print(f"Explorer logic failed: {e.response.text}")
                 raise HTTPException(status_code=500, detail="Explorer service encountered a logic error.")
             except Exception as e:
-                # This captures connection issues or Pydantic validation crashes
                 print(f"Gateway connection/validation error: {str(e)}")
                 raise HTTPException(status_code=500, detail=f"Failed to bridge to Explorer: {str(e)}")
