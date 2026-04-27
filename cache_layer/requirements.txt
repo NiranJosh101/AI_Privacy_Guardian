@@ -1,6 +1,7 @@
 fastapi
 redis==7.4.0
 pydantic==2.12.5
+pydantic-settings
 orjson==3.11.7
 opentelemetry-api
 opentelemetry-sdk
