@@ -19,6 +19,8 @@ async def health_check():
     """Liveness probe for Kubernetes/Docker."""
     return {"status": "healthy", "service": "interpreter"}
 
+
+# define a root endpoint for quick testing
 if __name__ == "__main__":
     # In production, you'd use a gunicorn/uvicorn worker setup
     uvicorn.run("main:app", host="0.0.0.0", port=8002, reload=True)
