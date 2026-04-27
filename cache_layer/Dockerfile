@@ -35,4 +35,4 @@ ENV PYTHONPATH=/app/app
 EXPOSE 8000
 
 # 2. Point to the actual location shown in your sidebar
-CMD ["python","-m" "app.main"]
+CMD ["python","-m", "app.main"]
