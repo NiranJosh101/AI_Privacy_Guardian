@@ -36,10 +36,10 @@ jobs:
       # -----------------------------
       # EXPLORER
       # -----------------------------
-      # - name: Build and Push Explorer
-      #   run: |
-      #     docker build -t ${{ secrets.DOCKER_USERNAME }}/explorer:latest ./explorer_layer
-      #     docker push ${{ secrets.DOCKER_USERNAME }}/explorer:latest
+      - name: Build and Push Explorer
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/explorer:latest ./explorer_layer
+          docker push ${{ secrets.DOCKER_USERNAME }}/explorer:latest
 
       # -----------------------------
       # INTERPRETER
@@ -60,7 +60,7 @@ jobs:
       # -----------------------------
       # CACHE
       # -----------------------------
-      - name: Build and Push Cache
-        run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/cache:latest ./cache_layer
-          docker push ${{ secrets.DOCKER_USERNAME }}/cache:latest
+      # - name: Build and Push Cache
+      #   run: |
+      #     docker build -t ${{ secrets.DOCKER_USERNAME }}/cache:latest ./cache_layer
+      #     docker push ${{ secrets.DOCKER_USERNAME }}/cache:latest
