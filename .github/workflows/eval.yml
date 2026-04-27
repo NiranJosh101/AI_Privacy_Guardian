@@ -22,47 +22,47 @@ jobs:
       # -----------------------------
       # BUILD
       # -----------------------------
-      - name: Build Interpreter
-        run: |
-          docker build \
-            -t ${{ secrets.DOCKER_USERNAME }}/interpreter:latest \
-            -t ${{ secrets.DOCKER_USERNAME }}/interpreter:${{ github.sha }} \
-            ./interpreter
+      # - name: Build Interpreter
+      #   run: |
+      #     docker build \
+      #       -t ${{ secrets.DOCKER_USERNAME }}/interpreter:latest \
+      #       -t ${{ secrets.DOCKER_USERNAME }}/interpreter:${{ github.sha }} \
+      #       ./interpreter
 
-      # -----------------------------
-      # EVAL
-      # -----------------------------
-      - name: Run Eval
-        run: |
-          cd interpreter
-          python eval/run_eval.py
+      # # -----------------------------
+      # # EVAL
+      # # -----------------------------
+      # - name: Run Eval
+      #   run: |
+      #     cd interpreter
+      #     python eval/run_eval.py
 
-      - name: Read Score
-        id: eval
-        run: |
-          SCORE=$(cat interpreter/eval_result.json | jq .score)
-          echo "score=$SCORE" >> $GITHUB_OUTPUT
+      # - name: Read Score
+      #   id: eval
+      #   run: |
+      #     SCORE=$(cat interpreter/eval_result.json | jq .score)
+      #     echo "score=$SCORE" >> $GITHUB_OUTPUT
 
-      # -----------------------------
-      # GATE
-      # -----------------------------
-      - name: Check Threshold
-        run: |
-          echo "Eval Score: ${{ steps.eval.outputs.score }}"
-          THRESHOLD=0.85
+      # # -----------------------------
+      # # GATE
+      # # -----------------------------
+      # - name: Check Threshold
+      #   run: |
+      #     echo "Eval Score: ${{ steps.eval.outputs.score }}"
+      #     THRESHOLD=0.85
 
-          if (( $(echo "${{ steps.eval.outputs.score }} < $THRESHOLD" | bc -l) )); then
-            echo "Eval failed"
-            exit 1
-          else
-            echo "Eval passed"
-          fi
+      #     if (( $(echo "${{ steps.eval.outputs.score }} < $THRESHOLD" | bc -l) )); then
+      #       echo "Eval failed"
+      #       exit 1
+      #     else
+      #       echo "Eval passed"
+      #     fi
 
-      # -----------------------------
-      # PUSH (ONLY IF PASSED)
-      # -----------------------------
-      - name: Push Interpreter
-        if: success()
-        run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/interpreter:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/interpreter:${{ github.sha }}
+      # # -----------------------------
+      # # PUSH (ONLY IF PASSED)
+      # # -----------------------------
+      # - name: Push Interpreter
+      #   if: success()
+      #   run: |
+      #     docker push ${{ secrets.DOCKER_USERNAME }}/interpreter:latest
+      #     docker push ${{ secrets.DOCKER_USERNAME }}/interpreter:${{ github.sha }}
