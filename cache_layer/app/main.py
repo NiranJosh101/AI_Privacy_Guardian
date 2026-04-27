@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from cache_layer.app.telemetry import init_telemetry
+from app.telemetry import init_telemetry
 from api.routes import router
 
 
