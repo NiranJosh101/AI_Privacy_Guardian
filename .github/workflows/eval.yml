@@ -1,0 +1,68 @@
+name: Interpreter Eval Gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'interpreter/**'
+
+jobs:
+  interpreter:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: sudo apt-get update && sudo apt-get install -y jq bc
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      # -----------------------------
+      # BUILD
+      # -----------------------------
+      - name: Build Interpreter
+        run: |
+          docker build \
+            -t ${{ secrets.DOCKER_USERNAME }}/interpreter:latest \
+            -t ${{ secrets.DOCKER_USERNAME }}/interpreter:${{ github.sha }} \
+            ./interpreter
+
+      # -----------------------------
+      # EVAL
+      # -----------------------------
+      - name: Run Eval
+        run: |
+          cd interpreter
+          python eval/run_eval.py
+
+      - name: Read Score
+        id: eval
+        run: |
+          SCORE=$(cat interpreter/eval_result.json | jq .score)
+          echo "score=$SCORE" >> $GITHUB_OUTPUT
+
+      # -----------------------------
+      # GATE
+      # -----------------------------
+      - name: Check Threshold
+        run: |
+          echo "Eval Score: ${{ steps.eval.outputs.score }}"
+          THRESHOLD=0.85
+
+          if (( $(echo "${{ steps.eval.outputs.score }} < $THRESHOLD" | bc -l) )); then
+            echo "Eval failed"
+            exit 1
+          else
+            echo "Eval passed"
+          fi
+
+      # -----------------------------
+      # PUSH (ONLY IF PASSED)
+      # -----------------------------
+      - name: Push Interpreter
+        if: success()
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/interpreter:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/interpreter:${{ github.sha }}
