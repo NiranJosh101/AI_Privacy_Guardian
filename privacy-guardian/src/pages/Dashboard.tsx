@@ -14,7 +14,7 @@ const Dashboard = ({ config }: Props) => {
   const [stage, setStage] = useState<ScanStage>("idle");
   const [result, setResult] = useState<ScanResult | null>(null);
   const [currentUrl, setCurrentUrl] = useState("");
-
+  const API_BASE = import.meta.env.VITE_API_BASE_URL;
   // Use a ref for the interval to clean up properly and avoid multiple polls
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -36,7 +36,7 @@ const Dashboard = ({ config }: Props) => {
 
     try {
       // 1. Trigger the Gateway Orchestrator
-      const response = await fetch("http://localhost:8000/api/v1/scan", {
+      const response = await fetch(`${API_BASE}/api/v1/scan`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -52,7 +52,7 @@ const Dashboard = ({ config }: Props) => {
       // 2. Begin Polling for results
       pollIntervalRef.current = setInterval(async () => {
         try {
-          const statusRes = await fetch(`http://localhost:8000/api/v1/status/${jobId}`);
+          const statusRes = await fetch(`${API_BASE}/api/v1/status/${jobId}`);
           if (!statusRes.ok) return;
 
           const data = await statusRes.json();
