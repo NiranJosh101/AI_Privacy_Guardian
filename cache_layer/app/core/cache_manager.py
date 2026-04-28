@@ -5,8 +5,8 @@ from typing import Optional, Dict, Any
 # Pydantic V2 Fix: Use the modern encoder utility if needed
 from pydantic.json import pydantic_encoder 
 
-from configs.config import settings
-from utils.domain import normalize_domain
+from app.configs.config import settings
+from app.utils.domain import normalize_domain
 
 
 class CacheManager:

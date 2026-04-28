@@ -28,10 +28,10 @@ jobs:
       # -----------------------------
       # GATEWAY
       # -----------------------------
-      # - name: Build and Push Gateway
-      #   run: |
-      #     docker build -t ${{ secrets.DOCKER_USERNAME }}/gateway:latest ./gateway
-      #     docker push ${{ secrets.DOCKER_USERNAME }}/gateway:latest
+      - name: Build and Push Gateway
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/gateway:latest ./gateway
+          docker push ${{ secrets.DOCKER_USERNAME }}/gateway:latest
 
       # -----------------------------
       # EXPLORER
@@ -44,10 +44,10 @@ jobs:
       # -----------------------------
       # INTERPRETER
       # -----------------------------
-      - name: Build and Push Interpreter
-        run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/interpreter:latest ./interpreter
-          docker push ${{ secrets.DOCKER_USERNAME }}/interpreter:latest
+      # - name: Build and Push Interpreter
+      #   run: |
+      #     docker build -t ${{ secrets.DOCKER_USERNAME }}/interpreter:latest ./interpreter
+      #     docker push ${{ secrets.DOCKER_USERNAME }}/interpreter:latest
 
       # -----------------------------
       # JUDGE
@@ -60,7 +60,7 @@ jobs:
       # -----------------------------
       # CACHE
       # -----------------------------
-      # - name: Build and Push Cache
-      #   run: |
-      #     docker build -t ${{ secrets.DOCKER_USERNAME }}/cache:latest ./cache_layer
-      #     docker push ${{ secrets.DOCKER_USERNAME }}/cache:latest
+      - name: Build and Push Cache
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/cache:latest ./cache_layer
+          docker push ${{ secrets.DOCKER_USERNAME }}/cache:latest

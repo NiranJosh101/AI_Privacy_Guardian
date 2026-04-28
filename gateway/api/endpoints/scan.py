@@ -21,31 +21,24 @@ cache = CacheClient()
 jobs = {}
 
 @router.post("/scan", response_model=ScanStatusResponse)
-@limiter.limit("5/minute")  # The "Bouncer": 5 scans per minute per IP
-async def start_scan(request: ScanRequest, http_request: Request, background_tasks: BackgroundTasks):
-    """
-    Note: 'http_request' is required by the @limiter decorator 
-    to extract the client's IP address for rate limiting.
-    """
+@limiter.limit("5/minute")
+async def start_scan(request: Request, payload: ScanRequest, background_tasks: BackgroundTasks):
     job_id = str(uuid.uuid4())
     
-    # Initialize the job state
     jobs[job_id] = {
         "jobId": job_id,
         "status": ScanStage.DISCOVERY,
         "result": None
     }
     
-    # Fire and forget the orchestration chain
     background_tasks.add_task(
         run_orchestration_chain, 
         job_id, 
-        request.userId, 
-        request.url
+        payload.userId, 
+        payload.url
     )
     
     return jobs[job_id]
-
 
 def sanitize_url(url: str) -> str:
     """Ensures the URL has a protocol prefix."""

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from app.telemetry import init_telemetry
-from api.routes import router
+from app.api.routes import router
 
 
 app = FastAPI(

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query
-from core.cache_manager import CacheManager
-from models.schemas import CacheSetRequest
+from app.core.cache_manager import CacheManager
+from app.models.schemas import CacheSetRequest
 
 router = APIRouter()
 cache = CacheManager()

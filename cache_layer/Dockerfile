@@ -17,7 +17,6 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 
-
 # --- Stage 2: Final ---
 FROM python:3.11-slim
 WORKDIR /app
@@ -28,11 +27,10 @@ COPY . .
 RUN adduser --disabled-password --gecos "" appuser && chown -R appuser /app
 USER appuser
 
-# 1. Set the PYTHONPATH so your imports (api, configs, utils) work
-# This tells Python to look inside the SECOND 'app' folder for modules
+# Ensure imports work
 ENV PYTHONPATH=/app/app
 
-EXPOSE 8000
+EXPOSE 8007
 
-# 2. Point to the actual location shown in your sidebar
-CMD ["python","-m", "app.main"]
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8007"]
