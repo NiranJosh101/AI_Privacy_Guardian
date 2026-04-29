@@ -6,23 +6,15 @@ from fastapi import HTTPException
 
 class ExplorerClient:
     def __init__(self):
-        
-        raw_val = str(cfg.services['explorer'].url)
-        
-        if ":-" in raw_val:
-            extracted = raw_val.split(":-")[-1].strip("}\"' ")
-            self.url = extracted
-        else:
-            self.url = raw_val.strip("\"' ")
+        # Trust cfg to have resolved the environment variable already
+        self.url = str(cfg.services['explorer'].url).strip("\"' ")
 
-       
+        # Ensure protocol exists
         if not self.url.startswith(('http://', 'https://')):
             self.url = f"http://{self.url}"
             
         self.timeout = cfg.services['explorer'].timeout
-       
-        print(f"✅ ExplorerClient Initialized with URL: {self.url}")
-
+        print(f"ExplorerClient properly initialized at: {self.url}")
 
     async def discover_site_content(self, target_url: str) -> ExplorerResponse:
         async with httpx.AsyncClient() as client:

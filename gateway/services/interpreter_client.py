@@ -6,16 +6,18 @@ from fastapi import HTTPException
 
 class InterpreterClient:
     def __init__(self):
-        base_url = cfg.services['interpreter'].url
+        # 1. Ensure we have a string and strip quotes
+        raw_url = str(cfg.services['interpreter'].url).strip("\"' ")
         
-        # Strip any accidental quotes and check protocol
-        base_url = base_url.strip().replace('"', '').replace("'", "")
-        
-        if not base_url.startswith(('http://', 'https://')):
-            base_url = f"http://{base_url}"
+        # 2. Add protocol if missing
+        if not raw_url.startswith(('http://', 'https://')):
+            raw_url = f"http://{raw_url}"
             
-        self.url = base_url
+        # 3. Store base URL (we'll rstrip inside the method to be safe)
+        self.url = raw_url
         self.timeout = cfg.services['interpreter'].timeout
+        
+        print(f"InterpreterClient Initialized at: {self.url}")
 
     async def extract_site_profile(self, explorer_data: ExplorerResponse) -> SiteProfile:
         # 1. Map the ExplorerResponse fields EXACTLY to the PolicyRequest model

@@ -31,4 +31,4 @@ export interface ScanResult {
   violations: Violation[];
 }
 
-export type ScanStage = "idle" | "locating" | "analyzing" | "judging" | "complete";
+export type ScanStage = "idle" | "discovery" | "analyzing" | "judging" | "complete";

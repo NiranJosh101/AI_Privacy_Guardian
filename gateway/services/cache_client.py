@@ -6,17 +6,16 @@ from models.schemas import SiteProfile
 
 class CacheClient:
     def __init__(self):
-        # 1. Standardize URL extraction (Matching ExplorerClient logic)
-        raw_val = str(cfg.services['cache'].url)
-        
-        if ":-" in raw_val:
-            self.base_url = raw_val.split(":-")[-1].strip("}\"' ")
-        else:
-            self.base_url = raw_val.strip("\"' ")
+        # 1. Trust the config manager to have resolved the ENV var
+        self.base_url = str(cfg.services['cache'].url).strip("\"' ")
 
+        # 2. Safety check for protocol
         if not self.base_url.startswith(('http://', 'https://')):
             self.base_url = f"http://{self.base_url}"
-
+        
+        self.timeout = cfg.services['cache'].timeout
+        print(f"🚀 CacheClient Initialized at: {self.base_url}")
+        
         # 2. Setup persistent client with the same limits as your other layers
         self.client = httpx.AsyncClient(
             base_url=self.base_url.rstrip('/'),
