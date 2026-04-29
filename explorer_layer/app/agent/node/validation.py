@@ -137,7 +137,7 @@ def _parse_response(response: Any) -> Dict[str, Any]:
     )
 
 
-TOOL_TIMEOUT = 15.0
+TOOL_TIMEOUT = 60.0
 
 
 @traceable(name="Validation Node", run_type="chain")
