@@ -1,9 +1,0 @@
-{
-    "env": {
-        "ANTHROPIC_AUTH_TOKEN": "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",
-        "ANTRHOPIC_BASE_URL": "https://openroute.ai/api",
-        "ANTHROPIC_DEFAULT_HAIKU_MODEL": "nvidia/nemotron-3-nano-30b-a3b:free",
-        "ANTHROPIC_DEFAULT_OPUS_MODEL": "nvidia/nemotron-3-nano-30b-a3b:free",
-        "ANTHROPIC_DEFAULT_SONNET_MODEL": "nvidia/nemotron-3-nano-30b-a3b:free"
-    }
-}
