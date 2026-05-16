@@ -13,7 +13,14 @@ _crawler: Optional[AsyncWebCrawler] = None
 
 
 async def _get_crawler() -> AsyncWebCrawler:
-    """Return the shared crawler, starting it on first call."""
+    """
+        The _get_crawler() function ensures that the browser
+        starts once and stays open in the background. 
+        When the Agent needs to validate a site, 
+        the browser is already "warm" and ready to go, cutting out 
+        the "cold-start" delay.
+        
+    """
     global _crawler
     if _crawler is None:
         browser_config = BrowserConfig(
