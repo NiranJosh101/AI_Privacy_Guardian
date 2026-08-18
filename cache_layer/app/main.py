@@ -9,7 +9,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
-init_telemetry(app, "privacy-guardian-cache")
+# init_telemetry(app, "privacy-guardian-cache")
 
 # Register routes
 app.include_router(router, prefix="/cache")

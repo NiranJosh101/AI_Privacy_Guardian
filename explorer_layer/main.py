@@ -12,7 +12,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
-init_telemetry(app, "privacy-guardian-explorer")
+# init_telemetry(app, "privacy-guardian-explorer")
 
 @app.post("/explore", response_model=ExplorerResponse)
 async def run_exploration(request: ExploreRequest):

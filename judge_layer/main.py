@@ -10,7 +10,7 @@ app = FastAPI(
 )
 
 
-init_telemetry(app, "privacy-guardian-judge")
+# init_telemetry(app, "privacy-guardian-judge")
 
 
 

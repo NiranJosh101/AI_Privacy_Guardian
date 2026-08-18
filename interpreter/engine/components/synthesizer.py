@@ -9,7 +9,7 @@ load_dotenv()
 
 
 class PolicySynthesizer:
-    def __init__(self, model_name: str = "llama-3.1-8b-instant"):
+    def __init__(self, model_name: str = "openai/gpt-oss-20b"):
         # We use temperature 0 for extraction to ensure deterministic results
         self.llm = ChatGroq(
             temperature=0, 

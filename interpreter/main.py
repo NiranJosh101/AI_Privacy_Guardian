@@ -9,7 +9,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
-init_telemetry(app, "privacy-guardian-interpreter")
+# init_telemetry(app, "privacy-guardian-interpreter")
 
 # Include our modular routes
 app.include_router(interpreter_router, prefix="/api/v1")

@@ -12,7 +12,7 @@ from security import limiter
 app = FastAPI(title="Privacy Guardian Gateway")
 
 # Initialize Telemetry
-init_telemetry(app, "privacy-guardian-gateway")
+# init_telemetry(app, "privacy-guardian-gateway")
 
 # Setup Rate Limiting State & Middleware
 app.state.limiter = limiter
