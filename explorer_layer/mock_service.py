@@ -12,7 +12,7 @@ async def mock_explore(request: dict):
     print(f"🔍 Explorer: Scraping {raw_url}")
 
     # Non-blocking 10-second delay
-    await asyncio.sleep(100)
+    await asyncio.sleep(7)
 
     return {
         "base_url": raw_url,

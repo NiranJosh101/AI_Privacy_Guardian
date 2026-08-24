@@ -13,7 +13,7 @@ async def mock_judge(request: dict):
     # Simulate a violation find
     return {
         "verdict": "FLAG",
-        "risk_score": 80,
+        "risk_score": 40,
         "explanation": "This site collects location data and shares it with brokers, which violates your 'Balanced' persona constraints.",
         "violations": [
             {

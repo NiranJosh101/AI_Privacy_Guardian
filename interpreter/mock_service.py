@@ -4,7 +4,8 @@ import uvicorn
 
 app = FastAPI(title="Privacy DNA Service Mock")
 
-
+# Add the route your client is actually calling
+@app.post("/api/v1/interpret")
 @app.post("/v1/profile")
 async def mock_extract_profile(request: dict):
     base_url = request.get("base_url", "https://example.com")
@@ -12,10 +13,9 @@ async def mock_extract_profile(request: dict):
 
     print(f"🧬 Processing policy for: {clean_domain}")
 
-    # Non-blocking 10-second delay
-    await asyncio.sleep(100)
+    # Non-blocking delay
+    await asyncio.sleep(5)
 
-    # Return hardcoded SiteProfile mock payload
     return {
         "domain": clean_domain,
         "data_collection": {

@@ -1,5 +1,4 @@
 from fastapi import FastAPI, Query
-from typing import Optional
 import uvicorn
 
 app = FastAPI(title="Cache Service Mock")
@@ -8,28 +7,13 @@ app = FastAPI(title="Cache Service Mock")
 # Matches: GET /cache/site-profile?domain=https%3A%2F%2Fchowdeck.com%2F
 @app.get("/cache/site-profile")
 async def mock_get_cache(domain: str = Query(...)):
-    print(f"💾 Cache GET hit for domain: {domain}")
+    print(f"💾 Cache GET MISS for domain: {domain}")
 
-    # Return 404 if you want to test cache misses, or hit payload below:
+    # Return a cache miss so the gateway executes the full Explorer -> Interpreter -> Judge pipeline
     return {
-        "found": True,
-        "source": "cache",
-        "site_profile": {
-            "domain": "chowdeck.com",
-            "data_collection": {
-                "email": True,
-                "location": True,
-                "biometrics": False,
-                "usage_stats": True,
-                "financial_info": True
-            },
-            "third_party_sharing": False,
-            "sharing_details": [],
-            "data_retention_period": 365,
-            "encryption_standard": "TLS 1.3",
-            "opt_out_available": True,
-            "last_updated": "2026-01-15"
-        }
+        "found": False,
+        "site_profile": None,
+        "source": "miss"
     }
 
 
