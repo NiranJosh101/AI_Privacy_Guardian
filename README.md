@@ -2,8 +2,8 @@
 
 https://github.com/user-attachments/assets/305dd7ad-9227-4705-82d7-87c6f976b303
 
-﻿# Privacy Guardian
-### *The AI-Powered "Legal Co-Pilot" for Real-Time Privacy Analysis*
+﻿
+### *Privacy Guardian: The AI-Powered "Legal Co-Pilot" for Real-Time Privacy Analysis*
 
 Privacy Guardian is a cloud-native microservice suite that transforms static, complex legal jargon into actionable privacy protection. The project autonomously discovers and crawls site-specific legal documents using a headless browser agent to extract raw text. This data is processed through Retrieval-Augmented Generation (RAG) and Pydantic-enforced schemas to capture technical evidence such as encryption standards, data retention periods, and third-party sharing flags into a normalized profile. A deterministic engine then performs a real-time "handshake" between this profile and a user’s selected Persona, issuing explainable verdicts based on whether a site’s actual practices conflict with the user's personal privacy constraints.
 
