@@ -17,3 +17,4 @@ crawl4ai
 charset-normalizer
 certifi
 idna
+asyncpg
